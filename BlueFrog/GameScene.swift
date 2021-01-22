@@ -78,7 +78,7 @@ class GameScene: SKScene {
                 }
             }
         }
-        
+        //newcode
     }
     func createLevel() {
         let rowType = ["road","water","forest","road"]
