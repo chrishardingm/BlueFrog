@@ -8,10 +8,12 @@
 import SpriteKit
 import GameplayKit
 
-class GameScene: SKScene {
+class GameScene: SKScene, SKPhysicsContactDelegate{
     
     private var label : SKLabelNode?
     private var spinnyNode : SKShapeNode?
+    
+    //let playerTypeCategory: Unit
     
     var player:SKSpriteNode!
     var road:SKSpriteNode!
@@ -29,6 +31,7 @@ class GameScene: SKScene {
     var hpSprite:SKSpriteNode!
     var hitPoints:Int = 0
     var difficulty:String = ""
+    var laneDirectionSpeed:Int = 0
     var scoreLabel:SKLabelNode!
     var score:Int = 0 {
         didSet {
@@ -37,11 +40,15 @@ class GameScene: SKScene {
     }
     
     override func didMove(to view: SKView) {
+        physicsWorld.contactDelegate = self
+        
         difficulty = "easy"
         if difficulty == "easy" {
             addHitPoints(maxHitPoints: 3)
+            laneDirectionSpeed = 128
         } else if difficulty == "hard" {
             addHitPoints(maxHitPoints: 1)
+            laneDirectionSpeed = 256
         }
         
         
@@ -53,6 +60,7 @@ class GameScene: SKScene {
         player.zPosition = 2
         player.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         player.physicsBody = SKPhysicsBody(circleOfRadius: max(player.size.width / 2, player.size.height / 2))
+        //player.physicsBody.categoryBitMask = playerTypeCategory
         self.addChild(player)
         
         scoreLabel = SKLabelNode(text: "Score 0")
@@ -92,18 +100,17 @@ class GameScene: SKScene {
         
     }
     func addHitPoints(maxHitPoints: Int){
+        var lastHitPointPosition = 320
         while hitPoints < maxHitPoints {
-            var lastHitPointPosition = 320
             hpSprite = SKSpriteNode(imageNamed: "player")
-            //hpSprite.scale(to: CGSize)
+            hpSprite.setScale(0.5)
             hpSprite.position = CGPoint(x: lastHitPointPosition, y: +448)
             hpSprite.zPosition = 3
             self.addChild(hpSprite)
             
-            lastHitPointPosition += -128
+            lastHitPointPosition -= 64
             hitPoints += 1
         }
-        
     }
     func createLevel() {
         let rowType = ["road","water","forest","road"]
@@ -161,18 +168,18 @@ class GameScene: SKScene {
         var newObjectPosition = -256
         let laneDirectionRandomBool = Bool.random()
         var LaneDirection = 0
-        
+
         if laneDirectionRandomBool == true && rowType != "forest"{
-            LaneDirection = -128
+            LaneDirection = laneDirectionSpeed * -1
         }else if rowType != "forest"{
-            LaneDirection = 128
+            LaneDirection = laneDirectionSpeed
         }
         let action = SKAction.moveBy(x: CGFloat(LaneDirection), y: 0, duration: 100)
         
         while currentObjects < maxObjects {
             object = SKSpriteNode(imageNamed: "object")
             object.position = CGPoint(x: newObjectPosition, y: rowPosition + 128)
-            //object.physicsBody = SKPhysicsBody(circleOfRadius: max(player.size.width / 2, player.size.height / 2))
+            object.physicsBody = SKPhysicsBody(circleOfRadius: max(player.size.width / 2, player.size.height / 2))
             object.zPosition = 2
             self.addChild(object)
             object.run(action)
@@ -187,30 +194,8 @@ class GameScene: SKScene {
         }
         
     }
-    func touchDown(atPoint pos : CGPoint) {
-        
+    func didBeginContact(contact: SKPhysicsContact) {
+        print("objects did collide")
     }
     
-    func touchMoved(toPoint pos : CGPoint) {
-
-    }
-    
-    func touchUp(atPoint pos : CGPoint) {
-
-    }
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        
-    }
-    
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchMoved(toPoint: t.location(in: self)) }
-    }
-    
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchUp(atPoint: t.location(in: self)) }
-    }
-    
-    override func update(_ currentTime: TimeInterval) {
-        // Called before each frame is rendered
-    }
 }
