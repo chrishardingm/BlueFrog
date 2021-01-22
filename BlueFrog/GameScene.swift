@@ -26,6 +26,9 @@ class GameScene: SKScene {
     
     var object:SKSpriteNode!
     
+    var hpSprite:SKSpriteNode!
+    var hitPoints:Int = 0
+    var difficulty:String = ""
     var scoreLabel:SKLabelNode!
     var score:Int = 0 {
         didSet {
@@ -34,6 +37,14 @@ class GameScene: SKScene {
     }
     
     override func didMove(to view: SKView) {
+        difficulty = "easy"
+        if difficulty == "easy" {
+            addHitPoints(maxHitPoints: 3)
+        } else if difficulty == "hard" {
+            addHitPoints(maxHitPoints: 1)
+        }
+        
+        
         self.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         physicsWorld.gravity = CGVector(dx: 0, dy: 0)
         
@@ -78,7 +89,21 @@ class GameScene: SKScene {
                 }
             }
         }
-    
+        
+    }
+    func addHitPoints(maxHitPoints: Int){
+        while hitPoints < maxHitPoints {
+            var lastHitPointPosition = 320
+            hpSprite = SKSpriteNode(imageNamed: "player")
+            //hpSprite.scale(to: CGSize)
+            hpSprite.position = CGPoint(x: lastHitPointPosition, y: +448)
+            hpSprite.zPosition = 3
+            self.addChild(hpSprite)
+            
+            lastHitPointPosition += -128
+            hitPoints += 1
+        }
+        
     }
     func createLevel() {
         let rowType = ["road","water","forest","road"]
@@ -131,16 +156,34 @@ class GameScene: SKScene {
     func populateRow (rowType: String, rowPosition: Int) {
         print(rowType, rowPosition)
         
-        let maxObjects = 2
+        let maxObjects = 3
         var currentObjects = 0
-        var newObjectPosition = -1024
-        while currentObjects < maxObjects {
-        object = SKSpriteNode(imageNamed: "object")
-        object.position = CGPoint(x: newObjectPosition, y: rowPosition + 128)
-        self.addChild(object)
+        var newObjectPosition = -256
+        let laneDirectionRandomBool = Bool.random()
+        var LaneDirection = 0
         
-        newObjectPosition += 128
-        currentObjects += 1
+        if laneDirectionRandomBool == true && rowType != "forest"{
+            LaneDirection = -128
+        }else if rowType != "forest"{
+            LaneDirection = 128
+        }
+        let action = SKAction.moveBy(x: CGFloat(LaneDirection), y: 0, duration: 100)
+        
+        while currentObjects < maxObjects {
+            object = SKSpriteNode(imageNamed: "object")
+            object.position = CGPoint(x: newObjectPosition, y: rowPosition + 128)
+            //object.physicsBody = SKPhysicsBody(circleOfRadius: max(player.size.width / 2, player.size.height / 2))
+            object.zPosition = 2
+            self.addChild(object)
+            object.run(action)
+            
+            let randomBool = Bool.random()
+            if randomBool == true {
+                newObjectPosition += 256
+            } else {
+                newObjectPosition += 128
+            }
+            currentObjects += 1
         }
         
     }

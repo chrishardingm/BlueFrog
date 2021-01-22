@@ -16,6 +16,10 @@
 		30793CFF25B1E1400085C66B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 30793CFE25B1E1400085C66B /* Assets.xcassets */; };
 		30793D0A25B1E1400085C66B /* BlueFrogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30793D0925B1E1400085C66B /* BlueFrogTests.swift */; };
 		30793D1525B1E1400085C66B /* BlueFrogUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30793D1425B1E1400085C66B /* BlueFrogUITests.swift */; };
+		3090DFCF25BB1CFC0068DF0A /* MenuScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = 3090DFCE25BB1CFC0068DF0A /* MenuScene.sks */; };
+		3090DFD425BB1EB40068DF0A /* MenuScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3090DFD325BB1EB40068DF0A /* MenuScene.swift */; };
+		3090DFD925BB21EF0068DF0A /* GameOverScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = 3090DFD825BB21EF0068DF0A /* GameOverScene.sks */; };
+		3090DFDE25BB22310068DF0A /* GameOverScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3090DFDD25BB22310068DF0A /* GameOverScene.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +55,10 @@
 		30793D1025B1E1400085C66B /* BlueFrogUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BlueFrogUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		30793D1425B1E1400085C66B /* BlueFrogUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlueFrogUITests.swift; sourceTree = "<group>"; };
 		30793D1625B1E1400085C66B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3090DFCE25BB1CFC0068DF0A /* MenuScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = MenuScene.sks; sourceTree = "<group>"; };
+		3090DFD325BB1EB40068DF0A /* MenuScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuScene.swift; sourceTree = "<group>"; };
+		3090DFD825BB21EF0068DF0A /* GameOverScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = GameOverScene.sks; sourceTree = "<group>"; };
+		3090DFDD25BB22310068DF0A /* GameOverScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameOverScene.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,8 +111,12 @@
 			children = (
 				30793CF125B1E13F0085C66B /* AppDelegate.swift */,
 				30793CF325B1E13F0085C66B /* GameScene.sks */,
+				3090DFCE25BB1CFC0068DF0A /* MenuScene.sks */,
+				3090DFD825BB21EF0068DF0A /* GameOverScene.sks */,
 				30793CF525B1E13F0085C66B /* Actions.sks */,
 				30793CF725B1E13F0085C66B /* GameScene.swift */,
+				3090DFD325BB1EB40068DF0A /* MenuScene.swift */,
+				3090DFDD25BB22310068DF0A /* GameOverScene.swift */,
 				30793CF925B1E13F0085C66B /* GameViewController.swift */,
 				30793CFB25B1E13F0085C66B /* Main.storyboard */,
 				30793CFE25B1E1400085C66B /* Assets.xcassets */,
@@ -237,6 +249,8 @@
 				30793CFD25B1E13F0085C66B /* Main.storyboard in Resources */,
 				30793CF425B1E13F0085C66B /* GameScene.sks in Resources */,
 				30793CFF25B1E1400085C66B /* Assets.xcassets in Resources */,
+				3090DFCF25BB1CFC0068DF0A /* MenuScene.sks in Resources */,
+				3090DFD925BB21EF0068DF0A /* GameOverScene.sks in Resources */,
 				30793CF625B1E13F0085C66B /* Actions.sks in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -262,7 +276,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3090DFDE25BB22310068DF0A /* GameOverScene.swift in Sources */,
 				30793CF825B1E13F0085C66B /* GameScene.swift in Sources */,
+				3090DFD425BB1EB40068DF0A /* MenuScene.swift in Sources */,
 				30793CFA25B1E13F0085C66B /* GameViewController.swift in Sources */,
 				30793CF225B1E13F0085C66B /* AppDelegate.swift in Sources */,
 			);
