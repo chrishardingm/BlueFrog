@@ -38,9 +38,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
             scoreLabel.text = "Score: \(score)"
         }
     }
-    
+    enum CollisionType: UInt32 {
+        case player = 0b01
+        case object = 0b10
+        case goal = 0b11
+    }
     override func didMove(to view: SKView) {
-        physicsWorld.contactDelegate = self
+        self.physicsWorld.contactDelegate = self
         
         difficulty = "easy"
         if difficulty == "easy" {
@@ -60,7 +64,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         player.zPosition = 2
         player.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         player.physicsBody = SKPhysicsBody(circleOfRadius: max(player.size.width / 2, player.size.height / 2))
-        //player.physicsBody.categoryBitMask = playerTypeCategory
+        player.physicsBody?.categoryBitMask = CollisionType.player.rawValue
+        player.physicsBody?.collisionBitMask = CollisionType.object.rawValue
+        player.physicsBody?.contactTestBitMask = CollisionType.object.rawValue
+        player.physicsBody?.isDynamic = false
         self.addChild(player)
         
         scoreLabel = SKLabelNode(text: "Score 0")
@@ -76,8 +83,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
                let position = touch.location(in: self)
-               print("touch position\(position)")
-               print("Player position\(player.position)")
+               //print("touch position\(position)")
+               //print("Player position\(player.position)")
             
             // Moves the player forward or backward
                 if position.y > player.position.y + 72{
@@ -179,7 +186,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         while currentObjects < maxObjects {
             object = SKSpriteNode(imageNamed: "object")
             object.position = CGPoint(x: newObjectPosition, y: rowPosition + 128)
-            object.physicsBody = SKPhysicsBody(circleOfRadius: max(player.size.width / 2, player.size.height / 2))
+            object.physicsBody = SKPhysicsBody(circleOfRadius: max(object.size.width / 4, object.size.height / 4))
+            object.physicsBody?.isDynamic = false
+            object.physicsBody?.categoryBitMask = CollisionType.object.rawValue
+            object.physicsBody?.collisionBitMask = CollisionType.player.rawValue
+            object.physicsBody?.contactTestBitMask = CollisionType.player.rawValue
             object.zPosition = 2
             self.addChild(object)
             object.run(action)
@@ -194,8 +205,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         }
         
     }
-    func didBeginContact(contact: SKPhysicsContact) {
-        print("objects did collide")
+    func didBegin(_ contact: SKPhysicsContact) {
+    print("Objects did collide")
+    //print("The \(contact.bodyA.node!.name!) entered in contact with the \(contact.bodyB.node!.name!)")
+        
     }
     
 }
