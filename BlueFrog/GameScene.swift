@@ -25,11 +25,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     var rowFour:SKSpriteNode!
     var rowFive:SKSpriteNode!
     var rowSix:SKSpriteNode!
+    var rowSeven:SKSpriteNode!
     
     var object:SKSpriteNode!
     
-    var hpSprite:SKSpriteNode!
+    var hpSprite1:SKSpriteNode!
+    var hpSprite2:SKSpriteNode!
+    var hpSprite3:SKSpriteNode!
+
     var hitPoints:Int = 0
+    var maxHitPoints:Int = 0
     var difficulty:String = ""
     var laneDirectionSpeed:Int = 0
     var scoreLabel:SKLabelNode!
@@ -44,21 +49,41 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         case goal = 0b11
     }
     override func didMove(to view: SKView) {
+        
         self.physicsWorld.contactDelegate = self
-        
-        difficulty = "easy"
-        if difficulty == "easy" {
-            addHitPoints(maxHitPoints: 3)
-            laneDirectionSpeed = 128
-        } else if difficulty == "hard" {
-            addHitPoints(maxHitPoints: 1)
-            laneDirectionSpeed = 256
-        }
-        
-        
         self.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         physicsWorld.gravity = CGVector(dx: 0, dy: 0)
         
+        hpSprite1 = SKSpriteNode(imageNamed: "player")
+        hpSprite1.setScale(0.5)
+        hpSprite1.zPosition = 3
+        hpSprite1.position = CGPoint(x: 320, y: +448)
+        
+        hpSprite2 = SKSpriteNode(imageNamed: "player")
+        hpSprite2.setScale(0.5)
+        hpSprite2.zPosition = 3
+        hpSprite2.position = CGPoint(x: 256, y: +448)
+        
+        hpSprite3 = SKSpriteNode(imageNamed: "player")
+        hpSprite3.setScale(0.5)
+        hpSprite3.zPosition = 3
+        hpSprite3.position = CGPoint(x: 192, y: +448)
+        
+        // Detect difficulty and adjust game variables.
+        difficulty = "easy"
+        if difficulty == "easy" {
+            laneDirectionSpeed = 128
+            maxHitPoints = 3
+            hitPoints = 3
+            addLivesEasy()
+        } else if difficulty == "hard" {
+            laneDirectionSpeed = 256
+            maxHitPoints = 1
+            hitPoints = 1
+            addLivesHard()
+        }
+
+        // Creating the player.
         player = SKSpriteNode(imageNamed: "player")
         player.position = CGPoint(x: 0, y: -448)
         player.zPosition = 2
@@ -104,21 +129,37 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
                 }
             }
         }
+    }
+    func addLivesEasy(){
+        self.addChild(hpSprite1)
+        self.addChild(hpSprite2)
+        self.addChild(hpSprite3)
+    }
+    func addLivesHard(){
+        self.addChild(hpSprite1)
+    }
+    func takeDamage() {
         
-    }
-    func addHitPoints(maxHitPoints: Int){
-        var lastHitPointPosition = 320
-        while hitPoints < maxHitPoints {
-            hpSprite = SKSpriteNode(imageNamed: "player")
-            hpSprite.setScale(0.5)
-            hpSprite.position = CGPoint(x: lastHitPointPosition, y: +448)
-            hpSprite.zPosition = 3
-            self.addChild(hpSprite)
-            
-            lastHitPointPosition -= 64
-            hitPoints += 1
+        if hitPoints == 3 {
+            hpSprite3.removeFromParent()
         }
+        if hitPoints == 2 {
+            hpSprite2.removeFromParent()
+        }
+        if hitPoints == 1 {
+            hpSprite1.removeFromParent()
+        }
+        if hitPoints == 0 {
+            print("You lose")
+            let transition:SKTransition = SKTransition.fade(withDuration: 5)
+            if let scene:SKScene = GameOverScene(fileNamed: "GameOverScene") {
+            scene.scaleMode = .aspectFill
+            self.view?.presentScene(scene, transition: transition)
+            }
+        }
+        hitPoints -= 1
     }
+    
     func createLevel() {
         let rowType = ["road","water","forest","road"]
         var lastRowPosition = player.position.y
@@ -165,6 +206,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         populateRow(rowType: "\(shuffled[0])", rowPosition: Int(lastRowPosition))
         self.addChild(rowSix)
         lastRowPosition = rowSix.position.y
+        
+        rowSeven = SKSpriteNode(imageNamed: "goal")
+        rowSeven.position = CGPoint(x: 0, y: lastRowPosition + 128)
+        rowSeven.physicsBody = SKPhysicsBody(circleOfRadius: max(object.size.width / 4, object.size.height / 4))
+        rowSeven.physicsBody?.isDynamic = true
+        rowSeven.physicsBody?.categoryBitMask = CollisionType.goal.rawValue
+        rowSeven.physicsBody?.collisionBitMask = CollisionType.player.rawValue
+        rowSeven.physicsBody?.contactTestBitMask = CollisionType.player.rawValue
+        self.addChild(rowSeven)
+        lastRowPosition = rowSeven.position.y
 
     }
     func populateRow (rowType: String, rowPosition: Int) {
@@ -187,7 +238,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
             object = SKSpriteNode(imageNamed: "object")
             object.position = CGPoint(x: newObjectPosition, y: rowPosition + 128)
             object.physicsBody = SKPhysicsBody(circleOfRadius: max(object.size.width / 4, object.size.height / 4))
-            object.physicsBody?.isDynamic = false
+            object.physicsBody?.isDynamic = true
+            object.physicsBody?.friction = 100000
             object.physicsBody?.categoryBitMask = CollisionType.object.rawValue
             object.physicsBody?.collisionBitMask = CollisionType.player.rawValue
             object.physicsBody?.contactTestBitMask = CollisionType.player.rawValue
@@ -207,8 +259,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     }
     func didBegin(_ contact: SKPhysicsContact) {
     print("Objects did collide")
-    //print("The \(contact.bodyA.node!.name!) entered in contact with the \(contact.bodyB.node!.name!)")
+        var firstBody:SKPhysicsBody
+        var secondBody:SKPhysicsBody
         
+        if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
+            firstBody = contact.bodyA
+            secondBody = contact.bodyB
+        } else {
+            firstBody = contact.bodyB
+            secondBody = contact.bodyA
+        }
+        
+        if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.object.rawValue {
+            print("player tocuhed an object")
+            takeDamage()
+        }
+        else if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.goal.rawValue {
+            print("player has reached the goal")
+        }
     }
     
 }
