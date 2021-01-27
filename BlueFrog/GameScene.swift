@@ -8,13 +8,11 @@
 import SpriteKit
 import GameplayKit
 
-class GameScene: SKScene, SKPhysicsContactDelegate{
+class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private var label : SKLabelNode?
     private var spinnyNode : SKShapeNode?
-    
-    //let playerTypeCategory: Unit
-    
+        
     var player:SKSpriteNode!
     var road:SKSpriteNode!
     var water:SKSpriteNode!
@@ -27,6 +25,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     var rowSix:SKSpriteNode!
     var rowSeven:SKSpriteNode!
     
+    var waterObject:SKSpriteNode!
     var object:SKSpriteNode!
     var leftBorder:SKSpriteNode!
     var rightBorder:SKSpriteNode!
@@ -39,10 +38,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     var maxHitPoints:Int = 0
     var difficulty:String = ""
     var laneDirectionSpeed:Int = 0
+    var maxObjects:Int = 0
     var scoreLabel:SKLabelNode!
     var score:Int = 0 {
         didSet {
-            scoreLabel.text = "Score: \(score)"
+            scoreLabel.text = "Time: \(score)"
         }
     }
     enum CollisionType: UInt32 {
@@ -55,7 +55,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         
         self.physicsWorld.contactDelegate = self
         self.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-        physicsWorld.gravity = CGVector(dx: 0, dy: 0)
+        
         
         hpSprite1 = SKSpriteNode(imageNamed: "player")
         hpSprite1.setScale(0.5)
@@ -75,14 +75,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         // Detect difficulty and adjust game variables.
         difficulty = "easy"
         if difficulty == "easy" {
-            laneDirectionSpeed = 512
+            physicsWorld.gravity = CGVector(dx: 0, dy: -0.025)
+            laneDirectionSpeed = 1024
             maxHitPoints = 3
             hitPoints = 3
+            maxObjects = 12
             addLivesEasy()
         } else if difficulty == "hard" {
-            laneDirectionSpeed = 1024
+            physicsWorld.gravity = CGVector(dx: 0, dy: -0.04)
+            laneDirectionSpeed = 2048
             maxHitPoints = 1
             hitPoints = 1
+            maxObjects = 16
             addLivesHard()
         }
         // Creating the Border wall for objects.
@@ -108,16 +112,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         player = SKSpriteNode(imageNamed: "player")
         player.position = CGPoint(x: 0, y: -448)
         player.zPosition = 2
+        player.setScale(0.8)
         player.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         player.physicsBody = SKPhysicsBody(circleOfRadius: max(player.size.width / 2, player.size.height / 2))
         player.physicsBody?.categoryBitMask = CollisionType.player.rawValue
         player.physicsBody?.collisionBitMask = 0
         player.physicsBody?.contactTestBitMask = CollisionType.object.rawValue
-        player.physicsBody?.isDynamic = false
+        player.physicsBody?.isDynamic = true
         self.addChild(player)
         
         scoreLabel = SKLabelNode(text: "Score 0")
-        scoreLabel.position = CGPoint(x: 0, y: +448)
+        scoreLabel.position = CGPoint(x: 0, y: +512)
         scoreLabel.fontSize = 36
         scoreLabel.fontName = "Arial-Bold"
         scoreLabel.fontColor = UIColor.black
@@ -173,23 +178,42 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         }
         if hitPoints == 0 {
             print("You lose")
+            playerdeath()
+        }
+        let flashRedAction = SKAction.sequence([
+            SKAction.colorize(with: .orange, colorBlendFactor: 1.0, duration: 0.15),
+            SKAction.wait(forDuration: 0.1),
+            SKAction.colorize(withColorBlendFactor: 0.0, duration: 0.15)])
+        player.run(flashRedAction)
+        hitPoints -= 1
+    }
+    func playerdeath() {
+        
+        let shrink = SKAction.scale(to: 0.5, duration: 2)
+        let spin = SKAction.rotate(byAngle: 180, duration: 2)
+        
+        player.run(spin)
+        player.run(shrink)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             let transition:SKTransition = SKTransition.fade(withDuration: 5)
             if let scene:SKScene = GameOverScene(fileNamed: "GameOverScene") {
             scene.scaleMode = .aspectFill
             self.view?.presentScene(scene, transition: transition)
             }
         }
-        hitPoints -= 1
     }
     
     func createLevel() {
-        let rowType = ["road","water","forest","road"]
+        let rowType = ["road","water","forest","road","water"]
         var lastRowPosition = player.position.y
         
         
         var shuffled = rowType.shuffled()
         rowOne = SKSpriteNode(imageNamed: "\(shuffled[0])")
         rowOne.position = CGPoint(x: 0, y: lastRowPosition + 128)
+        rowOne.physicsBody = SKPhysicsBody(texture: rowOne.texture!, size: CGSize(width: rowOne.size.width, height: rowOne.size.height / 2))
+        rowOne.physicsBody?.isDynamic = true
+        rowOne.physicsBody?.collisionBitMask = 0
         populateRow(rowType: "\(shuffled[0])", rowPosition: Int(lastRowPosition))
         self.addChild(rowOne)
         lastRowPosition = rowOne.position.y
@@ -197,6 +221,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         shuffled = rowType.shuffled()
         rowTwo = SKSpriteNode(imageNamed: "\(shuffled[0])")
         rowTwo.position = CGPoint(x: 0, y: lastRowPosition + 128)
+        rowTwo.physicsBody = SKPhysicsBody(texture: rowTwo.texture!, size: CGSize(width: rowTwo.size.width, height: rowTwo.size.height / 2))
+        rowTwo.physicsBody?.isDynamic = true
+        rowTwo.physicsBody?.collisionBitMask = 0
         populateRow(rowType: "\(shuffled[0])", rowPosition: Int(lastRowPosition))
         self.addChild(rowTwo)
         lastRowPosition = rowTwo.position.y
@@ -204,6 +231,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         shuffled = rowType.shuffled()
         rowThree = SKSpriteNode(imageNamed: "\(shuffled[0])")
         rowThree.position = CGPoint(x: 0, y: lastRowPosition + 128)
+        rowThree.physicsBody = SKPhysicsBody(texture: rowThree.texture!, size: CGSize(width: rowThree.size.width, height: rowThree.size.height / 2))
+        rowThree.physicsBody?.isDynamic = true
+        rowThree.physicsBody?.collisionBitMask = 0
         populateRow(rowType: "\(shuffled[0])", rowPosition: Int(lastRowPosition))
         self.addChild(rowThree)
         lastRowPosition = rowThree.position.y
@@ -211,6 +241,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         shuffled = rowType.shuffled()
         rowFour = SKSpriteNode(imageNamed: "\(shuffled[0])")
         rowFour.position = CGPoint(x: 0, y: lastRowPosition + 128)
+        rowFour.physicsBody = SKPhysicsBody(texture: rowFour.texture!, size: CGSize(width: rowFour.size.width, height: rowFour.size.height / 2))
+        rowFour.physicsBody?.isDynamic = true
+        rowFour.physicsBody?.collisionBitMask = 0
         populateRow(rowType: "\(shuffled[0])", rowPosition: Int(lastRowPosition))
         self.addChild(rowFour)
         lastRowPosition = rowFour.position.y
@@ -218,6 +251,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         shuffled = rowType.shuffled()
         rowFive = SKSpriteNode(imageNamed: "\(shuffled[0])")
         rowFive.position = CGPoint(x: 0, y: lastRowPosition + 128)
+        rowFive.physicsBody = SKPhysicsBody(texture: rowFive.texture!, size: CGSize(width: rowFive.size.width, height: rowFive.size.height / 2))
+        rowFive.physicsBody?.isDynamic = true
+        rowFive.physicsBody?.collisionBitMask = 0
         populateRow(rowType: "\(shuffled[0])", rowPosition: Int(lastRowPosition))
         self.addChild(rowFive)
         lastRowPosition = rowFive.position.y
@@ -225,6 +261,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         shuffled = rowType.shuffled()
         rowSix = SKSpriteNode(imageNamed: "\(shuffled[0])")
         rowSix.position = CGPoint(x: 0, y: lastRowPosition + 128)
+        rowSix.physicsBody = SKPhysicsBody(texture: rowSix.texture!, size: CGSize(width: rowSix.size.width, height: rowSix.size.height / 2))
+        rowSix.physicsBody?.isDynamic = true
+        rowSix.physicsBody?.collisionBitMask = 0
         populateRow(rowType: "\(shuffled[0])", rowPosition: Int(lastRowPosition))
         self.addChild(rowSix)
         lastRowPosition = rowSix.position.y
@@ -243,9 +282,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     func populateRow (rowType: String, rowPosition: Int) {
         print(rowType, rowPosition)
         
-        let maxObjects = 3
         var currentObjects = 0
-        var newObjectPosition = -256
+        var currentFilledCollums = 0
+        var newObjectPosition = -2048
         let laneDirectionRandomBool = Bool.random()
         var LaneDirection = 0
 
@@ -255,28 +294,53 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
             LaneDirection = laneDirectionSpeed
         }
         let action = SKAction.moveBy(x: CGFloat(LaneDirection), y: 0, duration: 60)
-        let actionMove = SKAction.move(to: CGPoint(x: 500, y: 0), duration: 0.1)
-        let actionSequence = SKAction.sequence([action,actionMove,action])
+        //let actionMove = SKAction.move(to: CGPoint(x: 500, y: 0), duration: 0.1)
+        //let actionSequence = SKAction.sequence([action,actionMove,action])
         
-        while currentObjects < maxObjects {
+        while currentFilledCollums < 32 {
             object = SKSpriteNode(imageNamed: "object")
             object.position = CGPoint(x: newObjectPosition, y: rowPosition + 128)
+            object.setScale(0.8)
             object.physicsBody = SKPhysicsBody(circleOfRadius: max(object.size.width /  4, object.size.height / 4))
             object.physicsBody?.isDynamic = true
-            object.physicsBody?.categoryBitMask = CollisionType.object.rawValue
             object.physicsBody?.collisionBitMask = 0
-            object.physicsBody?.contactTestBitMask = CollisionType.player.rawValue
-            object.zPosition = 2
-            self.addChild(object)
-            object.run(action)
             
-            let randomBool = Bool.random()
-            if randomBool == true {
-                newObjectPosition += 256
-            } else {
-                newObjectPosition += 128
+            if rowType == "road" {
+                object.texture = SKTexture(imageNamed: "object")
+                object.zPosition = 3
+                object.physicsBody?.categoryBitMask = CollisionType.object.rawValue
+                object.physicsBody?.collisionBitMask = 0
+                object.physicsBody?.contactTestBitMask = CollisionType.player.rawValue
+            } else if rowType == "water" {
+                object.texture = SKTexture(imageNamed: "object")
+                object.zPosition = 1
+                object.physicsBody?.categoryBitMask = CollisionType.object.rawValue
+                object.physicsBody?.collisionBitMask = 0
+                object.physicsBody?.contactTestBitMask = CollisionType.player.rawValue
+            } else if rowType == "forest"{
+                object.texture = SKTexture(imageNamed: "object")
+                object.zPosition = 1
             }
-            currentObjects += 1
+            
+            waterObject = SKSpriteNode(imageNamed: "waterobject")
+            waterObject.zPosition = 1
+            waterObject.position = CGPoint(x: newObjectPosition, y: rowPosition + 128)
+            waterObject.physicsBody = SKPhysicsBody(circleOfRadius: max(object.size.width /  4, object.size.height / 4))
+            waterObject.physicsBody?.collisionBitMask = 0
+            waterObject.physicsBody?.isDynamic = true
+
+            let randomBool = Bool.random()
+            
+            if randomBool == true && currentObjects < maxObjects{
+                self.addChild(object)
+                object.run(action)
+                currentObjects += 1
+            } else if rowType == "water"{
+                self.addChild(waterObject)
+                waterObject.run(action)
+            }
+            newObjectPosition += 128
+            currentFilledCollums += 1
         }
         
     }
@@ -284,7 +348,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     //print("Objects did collide")
         var firstBody:SKPhysicsBody
         var secondBody:SKPhysicsBody
-        var collisionPoint:CGPoint
         
         if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
             firstBody = contact.bodyA
@@ -300,15 +363,27 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         }
         else if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.goal.rawValue {
             print("player has reached the goal")
-            let transition:SKTransition = SKTransition.fade(withDuration: 5)
-            if let scene:SKScene = GameOverScene(fileNamed: "GameOverScene") {
-            scene.scaleMode = .aspectFill
-            self.view?.presentScene(scene, transition: transition)
+            
+            
+            let rotateleft = SKAction.rotate(byAngle: -1, duration: 0.25)
+            let wait = SKAction.wait(forDuration: 0.25)
+            let rotateright = SKAction.rotate(byAngle: 1, duration: 0.25)
+            let turnaround = SKAction.rotate(byAngle: 10, duration: 0.25)
+            let winAnimation = SKAction.sequence([rotateleft,wait,rotateright,wait,turnaround])
+
+            player.run(winAnimation)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                let transition:SKTransition = SKTransition.fade(withDuration: 5)
+                if let scene:SKScene = GameOverScene(fileNamed: "GameOverScene") {
+                scene.scaleMode = .aspectFill
+                self.view?.presentScene(scene, transition: transition)
+                }
             }
         }
         if firstBody.categoryBitMask == CollisionType.object.rawValue && secondBody.categoryBitMask == CollisionType.border.rawValue {
             print("Object has reached the border")
         }
     }
+    
     
 }
