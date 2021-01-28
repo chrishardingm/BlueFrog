@@ -26,6 +26,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var rowSeven:SKSpriteNode!
     
     var waterObject:SKSpriteNode!
+    var waterFlowobject:SKSpriteNode!
     var object:SKSpriteNode!
     var leftBorder:SKSpriteNode!
     var rightBorder:SKSpriteNode!
@@ -50,6 +51,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         case object = 0b10
         case goal = 0b11
         case border = 0b100
+        case waterObjectleft = 0b101
+        case waterObjectright = 0b110
     }
     override func didMove(to view: SKView) {
         
@@ -79,14 +82,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             laneDirectionSpeed = 1024
             maxHitPoints = 3
             hitPoints = 3
-            maxObjects = 12
+            maxObjects = 10
             addLivesEasy()
         } else if difficulty == "hard" {
             physicsWorld.gravity = CGVector(dx: 0, dy: -0.04)
             laneDirectionSpeed = 2048
             maxHitPoints = 1
             hitPoints = 1
-            maxObjects = 16
+            maxObjects = 14
             addLivesHard()
         }
         // Creating the Border wall for objects.
@@ -140,9 +143,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             // Moves the player forward or backward
                 if position.y > player.position.y + 72{
                     player.position = CGPoint(x: player.position.x, y: player.position.y + 128)
+                    player.removeAllActions()
                 }
                 if position.y < player.position.y - 72{
                     player.position = CGPoint(x: player.position.x, y: player.position.y - 128)
+                    player.removeAllActions()
                 }
 
             // Moves the player left or right
@@ -293,6 +298,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }else if rowType != "forest"{
             LaneDirection = laneDirectionSpeed
         }
+        if rowType == "water" {
+            waterFlowobject = SKSpriteNode(imageNamed: "water")
+            waterFlowobject.position = CGPoint(x: 0, y: rowPosition + 128)
+            waterFlowobject.zPosition = 0
+            waterFlowobject.physicsBody?.isDynamic = true
+            waterFlowobject.physicsBody = SKPhysicsBody(texture: waterFlowobject.texture!, size: CGSize(width: waterFlowobject.size.width, height: waterFlowobject.size.height / 2))
+            waterFlowobject.physicsBody?.collisionBitMask = 0
+            if LaneDirection == -1024 {
+                waterFlowobject.physicsBody?.categoryBitMask = CollisionType.waterObjectleft.rawValue
+            }else{
+                waterFlowobject.physicsBody?.categoryBitMask = CollisionType.waterObjectright.rawValue
+            }
+            waterFlowobject.physicsBody?.contactTestBitMask = CollisionType.player.rawValue
+            self.addChild(waterFlowobject)
+        }
+        
         let action = SKAction.moveBy(x: CGFloat(LaneDirection), y: 0, duration: 60)
         //let actionMove = SKAction.move(to: CGPoint(x: 500, y: 0), duration: 0.1)
         //let actionSequence = SKAction.sequence([action,actionMove,action])
@@ -311,15 +332,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 object.physicsBody?.categoryBitMask = CollisionType.object.rawValue
                 object.physicsBody?.collisionBitMask = 0
                 object.physicsBody?.contactTestBitMask = CollisionType.player.rawValue
+                
             } else if rowType == "water" {
                 object.texture = SKTexture(imageNamed: "object")
                 object.zPosition = 1
                 object.physicsBody?.categoryBitMask = CollisionType.object.rawValue
                 object.physicsBody?.collisionBitMask = 0
                 object.physicsBody?.contactTestBitMask = CollisionType.player.rawValue
+
             } else if rowType == "forest"{
-                object.texture = SKTexture(imageNamed: "object")
+                object.texture = SKTexture(imageNamed: "tree")
                 object.zPosition = 1
+                object.physicsBody?.collisionBitMask = 0
             }
             
             waterObject = SKSpriteNode(imageNamed: "waterobject")
@@ -327,6 +351,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             waterObject.position = CGPoint(x: newObjectPosition, y: rowPosition + 128)
             waterObject.physicsBody = SKPhysicsBody(circleOfRadius: max(object.size.width /  4, object.size.height / 4))
             waterObject.physicsBody?.collisionBitMask = 0
+            //waterObject.physicsBody?.contactTestBitMask = CollisionType.player.rawValue
             waterObject.physicsBody?.isDynamic = true
 
             let randomBool = Bool.random()
@@ -381,9 +406,40 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
         }
         if firstBody.categoryBitMask == CollisionType.object.rawValue && secondBody.categoryBitMask == CollisionType.border.rawValue {
-            print("Object has reached the border")
+            //print("Object has reached the border")
+        }
+        if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.waterObjectleft.rawValue {
+            print("Entered River flowing left")
+            let action = SKAction.moveBy(x: -1024, y: 0, duration: 60)
+            player.run(action)
+
+        }else if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.waterObjectright.rawValue {
+            print("Entered River flowing Right")
+            let action = SKAction.moveBy(x: 1024, y: 0, duration: 60)
+            player.run(action)
         }
     }
-    
+    func didEnd(_ contact: SKPhysicsContact) {
+        var firstBody:SKPhysicsBody
+        var secondBody:SKPhysicsBody
+        
+        if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
+            firstBody = contact.bodyA
+            secondBody = contact.bodyB
+        } else {
+            firstBody = contact.bodyB
+            secondBody = contact.bodyA
+        }
+        if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.waterObjectleft.rawValue {
+            print("outside of River")
+            player.removeAllActions()
+
+        }else if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.waterObjectright.rawValue {
+            print("outside of River")
+            player.removeAllActions()
+
+        }
+        
+    }
     
 }
