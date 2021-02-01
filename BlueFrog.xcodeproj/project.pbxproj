@@ -20,6 +20,7 @@
 		3090DFD425BB1EB40068DF0A /* MenuScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3090DFD325BB1EB40068DF0A /* MenuScene.swift */; };
 		3090DFD925BB21EF0068DF0A /* GameOverScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = 3090DFD825BB21EF0068DF0A /* GameOverScene.sks */; };
 		3090DFDE25BB22310068DF0A /* GameOverScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3090DFDD25BB22310068DF0A /* GameOverScene.swift */; };
+		30FCDAD825C84F4D004D0E9E /* DifficultyOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30FCDAD725C84F4D004D0E9E /* DifficultyOptions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,6 +60,7 @@
 		3090DFD325BB1EB40068DF0A /* MenuScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuScene.swift; sourceTree = "<group>"; };
 		3090DFD825BB21EF0068DF0A /* GameOverScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = GameOverScene.sks; sourceTree = "<group>"; };
 		3090DFDD25BB22310068DF0A /* GameOverScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameOverScene.swift; sourceTree = "<group>"; };
+		30FCDAD725C84F4D004D0E9E /* DifficultyOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DifficultyOptions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -116,6 +118,7 @@
 				30793CF525B1E13F0085C66B /* Actions.sks */,
 				30793CF725B1E13F0085C66B /* GameScene.swift */,
 				3090DFD325BB1EB40068DF0A /* MenuScene.swift */,
+				30FCDAD725C84F4D004D0E9E /* DifficultyOptions.swift */,
 				3090DFDD25BB22310068DF0A /* GameOverScene.swift */,
 				30793CF925B1E13F0085C66B /* GameViewController.swift */,
 				30793CFB25B1E13F0085C66B /* Main.storyboard */,
@@ -277,6 +280,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3090DFDE25BB22310068DF0A /* GameOverScene.swift in Sources */,
+				30FCDAD825C84F4D004D0E9E /* DifficultyOptions.swift in Sources */,
 				30793CF825B1E13F0085C66B /* GameScene.swift in Sources */,
 				3090DFD425BB1EB40068DF0A /* MenuScene.swift in Sources */,
 				30793CFA25B1E13F0085C66B /* GameViewController.swift in Sources */,

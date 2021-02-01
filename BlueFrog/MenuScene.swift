@@ -9,9 +9,17 @@ import SpriteKit
 
 class MenuScene: SKScene {
 
+    var difficultyLabel: SKLabelNode!
+    let userDefaults = UserDefaults.standard
+
     
     override func didMove(to view: SKView) {
-        
+        difficultyLabel = self.childNode(withName: "difficultyLabel") as? SKLabelNode
+        if let gameDifficulty = userDefaults.value(forKey: "GameDifficulty") as? String {
+            difficultyLabel.text = gameDifficulty
+        } else {
+            difficultyLabel.text = DifficultyOptions.Easy.description
+        }
     }
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?)
     {
@@ -35,6 +43,18 @@ class MenuScene: SKScene {
                 if name == "difficultyButton"
                 {
                     print("Player touched difficulty button")
+                    guard let difficulty = DifficultyOptions(rawValue: difficultyLabel.text!) else { return }
+                    switch difficulty {
+                    case .Easy:
+                        difficultyLabel.text = DifficultyOptions.Medium.description
+                        userDefaults.set(DifficultyOptions.Medium.description, forKey: "GameDifficulty")
+                    case .Medium:
+                        difficultyLabel.text = DifficultyOptions.Hard.description
+                        userDefaults.set(DifficultyOptions.Hard.description, forKey: "GameDifficulty")
+                    case .Hard:
+                        difficultyLabel.text = DifficultyOptions.Easy.description
+                        userDefaults.set(DifficultyOptions.Easy.description, forKey: "GameDifficulty")
+                    }
                 }
             }
         }
