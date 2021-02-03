@@ -42,17 +42,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var hitPoints:Int = 0
     var maxHitPoints:Int = 0
     var difficulty:String = "Easy"
+    var score:Int = 0
+    var timer:Double = 0.0
+    var gameHasEnded: Bool = false
+    var laneDirectionRandomBool = true
     var laneDirectionSpeed:Int = 1024
     var maxObjects:Int = 0
-    
-    var scoreLabel:SKLabelNode!
+
     let userDefaults = UserDefaults.standard
 
-    var score:Int = 0 {
-        didSet {
-            scoreLabel.text = "Time: \(score)"
-        }
-    }
     enum CollisionType: UInt32 {
         case player = 0b01
         case object = 0b10
@@ -60,8 +58,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         case border = 0b100
         case waterObjectleft = 0b101
         case waterObjectright = 0b110
-        case tree = 0b111
-
     }
     override func didMove(to view: SKView) {
         
@@ -90,25 +86,25 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             difficulty = gameDifficulty
         }
         if difficulty == "Easy" {
-            physicsWorld.gravity = CGVector(dx: 0, dy: -0.025)
+            physicsWorld.gravity = CGVector(dx: 0, dy: -0.024)
             //laneDirectionSpeed = laneDirectionSpeed * 1
             maxHitPoints = 3
             hitPoints = 3
-            maxObjects = 14
+            maxObjects = 16
             addLivesEasy()
         } else if difficulty == "Medium" {
-            physicsWorld.gravity = CGVector(dx: 0, dy: -0.028)
+            physicsWorld.gravity = CGVector(dx: 0, dy: -0.026)
             //laneDirectionSpeed = laneDirectionSpeed * 2
             maxHitPoints = 2
             hitPoints = 2
-            maxObjects = 16
+            maxObjects = 18
             addLivesMedium()
         } else if difficulty == "Hard" {
-            physicsWorld.gravity = CGVector(dx: 0, dy: -0.03)
+            physicsWorld.gravity = CGVector(dx: 0, dy: -0.28)
             //laneDirectionSpeed = laneDirectionSpeed * 2
             maxHitPoints = 1
             hitPoints = 1
-            maxObjects = 18
+            maxObjects = 20
             addLivesHard()
         }
         
@@ -144,7 +140,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         player = SKSpriteNode(imageNamed: "player")
         player.position = CGPoint(x: 0, y: -448)
         player.zPosition = 2
-        player.setScale(0.8)
+        player.setScale(0.75)
         player.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         player.physicsBody = SKPhysicsBody(circleOfRadius: max(player.size.width / 2, player.size.height / 2))
         player.physicsBody?.usesPreciseCollisionDetection = true
@@ -154,25 +150,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         player.physicsBody?.isDynamic = true
         self.addChild(player)
         
-        scoreLabel = SKLabelNode(text: "Score 0")
-        scoreLabel.position = CGPoint(x: 0, y: +512)
-        scoreLabel.fontSize = 36
-        scoreLabel.fontName = "Arial-Bold"
-        scoreLabel.fontColor = UIColor.black
-        score = 0
-        self.addChild(scoreLabel)
-        
         createLevel()
+    }
+    override func update(_ currentTime: TimeInterval){
+        timer = timer.advanced(by: 0.01)
+        //print(timer)
     }
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
                let position = touch.location(in: self)
-               //print("touch position\(position)")
+               print("touch position\(position)")
                //print("Player position\(player.position)")
             
             // Animations for the players movemnet.
-            let jump = SKAction.scale(to: 0.9, duration: 0.025)
-            let shrink = SKAction.scale(to: 0.8, duration: 0.025)
+            let jump = SKAction.scale(to: 0.85, duration: 0.025)
+            let shrink = SKAction.scale(to: 0.75, duration: 0.025)
             let wait = SKAction.wait(forDuration: 0.025)
             let jumpAnimation = SKAction.sequence([jump,wait,shrink])
             let moveLeft = SKAction.moveBy(x: -128, y: 0, duration: 0.05)
@@ -186,29 +178,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 if position.y > player.position.y + 64{
                     player.run(jumpAnimation)
                     player.run(moveUp)
-
-                    //player.position = CGPoint(x: player.position.x, y: player.position.y + 128)
-                    //adjustXPosition()
+                    adjustXPosition()
                 }
                 if position.y < player.position.y - 64{
                     player.run(jumpAnimation)
                     player.run(MoveDown)
-                    
-                    //player.position = CGPoint(x: player.position.x, y: player.position.y - 128)
+                    adjustXPosition()
                 }
             }else {
             // Moves the player left or right
                 if position.x < player.position.x && player.position.x > -200{
                     player.run(jumpAnimation)
                     player.run(moveLeft)
-                    
-                    //player.position = CGPoint(x: player.position.x - 128, y: player.position.y)
                 }
                 if position.x > player.position.x + 64 && player.position.x < 200{
                     player.run(jumpAnimation)
                     player.run(moveRight)
-
-                    //player.position = CGPoint(x: player.position.x + 128, y: player.position.y)
                 }
             }
         }
@@ -216,17 +201,45 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     //This function will help keep the player on the grid base movement.
     func adjustXPosition() {
+        //Center block
         if player.position.x > 0 && player.position.x <= 64 {
             player.position.x = 0
         }
         if player.position.x < 0 && player.position.x >= -64 {
             player.position.x = 0
         }
-        //while player.position.x.truncatingRemainder(dividingBy: 128) != 0 {
-        //    print("player position is divisable by 128")
-        //    player.position.x += 0.1
-        //}
-        //print(player.position.x)
+        
+        //First right block
+        if player.position.x > 64 && player.position.x < 128 {
+            player.position.x = 128
+        }
+        if player.position.x > 128 && player.position.x <= 192 {
+            player.position.x = 128
+        }
+        
+        //First left block
+        if player.position.x > -64 && player.position.x < -128 {
+            player.position.x = 128
+        }
+        if player.position.x > -128 && player.position.x <= -192 {
+            player.position.x = 128
+        }
+        
+        //Second Right block
+        if player.position.x > 192 && player.position.x < 256 {
+            player.position.x = 256
+        }
+        if player.position.x > 256 && player.position.x <= 400 {
+            player.position.x = 256
+        }
+        
+        //Second Left block
+        if player.position.x > -192 && player.position.x < -256 {
+            player.position.x = 256
+        }
+        if player.position.x > -256 && player.position.x <= -400 {
+            player.position.x = 256
+        }
         
     }
     func addLivesEasy(){
@@ -251,10 +264,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         if hitPoints == 1 {
             hpSprite1.removeFromParent()
-        }
-        if hitPoints == 0 {
             print("You lose")
             playerdeath()
+        }
+        if hitPoints == 0 {
+            
         }
         let flashRedAction = SKAction.sequence([
             SKAction.colorize(with: .orange, colorBlendFactor: 1.0, duration: 0.15),
@@ -264,7 +278,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         hitPoints -= 1
     }
     func playerdeath() {
-        
+        gameHasEnded = true
         let shrink = SKAction.scale(to: 0.5, duration: 2)
         let spin = SKAction.rotate(byAngle: 180, duration: 2)
         
@@ -280,9 +294,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func createLevel() {
-        let rowType = ["road","water","forest","road","water"]
+        let rowType = ["road","water"]
         var lastRowPosition = player.position.y
         
+        rowZero = SKSpriteNode(imageNamed: "grass")
+        rowZero.position = CGPoint(x: 0, y: lastRowPosition)
+        rowZero.physicsBody = SKPhysicsBody(texture: rowZero.texture!, size: CGSize(width: rowZero.size.width, height: rowZero.size.height / 2))
+        rowZero.physicsBody?.isDynamic = true
+        rowZero.physicsBody?.collisionBitMask = 0
+        self.addChild(rowZero)
         
         var shuffled = rowType.shuffled()
         rowOne = SKSpriteNode(imageNamed: "\(shuffled[0])")
@@ -304,13 +324,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(rowTwo)
         lastRowPosition = rowTwo.position.y
         
-        shuffled = rowType.shuffled()
-        rowThree = SKSpriteNode(imageNamed: "\(shuffled[0])")
+        //shuffled = rowType.shuffled()
+        rowThree = SKSpriteNode(imageNamed: "grass")
         rowThree.position = CGPoint(x: 0, y: lastRowPosition + 128)
         rowThree.physicsBody = SKPhysicsBody(texture: rowThree.texture!, size: CGSize(width: rowThree.size.width, height: rowThree.size.height / 2))
         rowThree.physicsBody?.isDynamic = true
         rowThree.physicsBody?.collisionBitMask = 0
-        populateRow(rowType: "\(shuffled[0])", rowPosition: Int(lastRowPosition))
+        //populateRow(rowType: "\(shuffled[0])", rowPosition: Int(lastRowPosition))
         self.addChild(rowThree)
         lastRowPosition = rowThree.position.y
         
@@ -334,13 +354,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(rowFive)
         lastRowPosition = rowFive.position.y
         
-        shuffled = rowType.shuffled()
-        rowSix = SKSpriteNode(imageNamed: "\(shuffled[0])")
+        //shuffled = rowType.shuffled()
+        rowSix = SKSpriteNode(imageNamed: "grass")
         rowSix.position = CGPoint(x: 0, y: lastRowPosition + 128)
         rowSix.physicsBody = SKPhysicsBody(texture: rowSix.texture!, size: CGSize(width: rowSix.size.width, height: rowSix.size.height / 2))
         rowSix.physicsBody?.isDynamic = true
         rowSix.physicsBody?.collisionBitMask = 0
-        populateRow(rowType: "\(shuffled[0])", rowPosition: Int(lastRowPosition))
+        //populateRow(rowType: "\(shuffled[0])", rowPosition: Int(lastRowPosition))
         self.addChild(rowSix)
         lastRowPosition = rowSix.position.y
         
@@ -364,7 +384,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(rowEight)
         lastRowPosition = rowEight.position.y
         
-        lastRow = SKSpriteNode(imageNamed: "goal")
+        lastRow = SKSpriteNode(imageNamed: "grass")
         lastRow.position = CGPoint(x: 0, y: lastRowPosition + 128)
         lastRow.physicsBody = SKPhysicsBody(texture: lastRow.texture!, size: CGSize(width: lastRow.size.width, height: lastRow.size.height / 2))
         lastRow.physicsBody?.isDynamic = true
@@ -376,25 +396,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     }
     func populateRow (rowType: String, rowPosition: Int) {
-        print(rowType, rowPosition)
-        
         var currentObjects = 0
         var currentFilledCollums = 0
         var newObjectPosition = -2048
-        let laneDirectionRandomBool = Bool.random()
         var LaneDirection = 0
-        var trueBoolsInARow = 0
         var objectsInARow = 0
 
-        if laneDirectionRandomBool == true && rowType != "forest" && trueBoolsInARow < 2{
+        if laneDirectionRandomBool == true{
             LaneDirection = laneDirectionSpeed * -1
-            trueBoolsInARow += 1
-        }else if rowType != "forest"{
+            laneDirectionRandomBool = false
+        }else{
             LaneDirection = laneDirectionSpeed
-            trueBoolsInARow = 0
+            laneDirectionRandomBool = true
         }
         if rowType == "water" {
-            waterFlowobject = SKSpriteNode(imageNamed: "water")
+            waterFlowobject = SKSpriteNode(imageNamed: "waterlane")
             waterFlowobject.position = CGPoint(x: 0, y: rowPosition + 128)
             waterFlowobject.zPosition = 0
             waterFlowobject.physicsBody?.isDynamic = true
@@ -410,14 +426,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
         }
         let action = SKAction.moveBy(x: CGFloat(LaneDirection), y: 0, duration: 60)
-        //let actionMove = SKAction.move(to: CGPoint(x: 500, y: 0), duration: 0.1)
-        //let actionSequence = SKAction.sequence([action,actionMove,action])
         
         while currentFilledCollums < 32 {
             object = SKSpriteNode(imageNamed: "object")
             object.position = CGPoint(x: newObjectPosition, y: rowPosition + 128)
             object.setScale(0.8)
-            object.physicsBody = SKPhysicsBody(circleOfRadius: max(object.size.width /  4, object.size.height / 4))
+            object.physicsBody = SKPhysicsBody(circleOfRadius: max(object.size.width /  12, object.size.height / 12))
             object.physicsBody?.isDynamic = true
             object.physicsBody?.collisionBitMask = 0
             
@@ -429,21 +443,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 object.physicsBody?.contactTestBitMask = CollisionType.player.rawValue
                 
             } else if rowType == "water" {
-                object.texture = SKTexture(imageNamed: "object")
+                object.texture = SKTexture(imageNamed: "water")
                 object.zPosition = 1
+                object.setScale(1.0)
+                object.physicsBody = SKPhysicsBody(circleOfRadius: max(object.size.width /  10, object.size.height / 10))
                 object.physicsBody?.categoryBitMask = CollisionType.object.rawValue
                 object.physicsBody?.collisionBitMask = 0
                 object.physicsBody?.contactTestBitMask = CollisionType.player.rawValue
 
-            } else if rowType == "forest"{
-                object.texture = SKTexture(imageNamed: "tree")
-                object.zPosition = 1
-                object.physicsBody = SKPhysicsBody(texture: object.texture!, size: CGSize(width: object.size.width * 1.25, height: object.size.height * 1.25))
-                object.physicsBody?.collisionBitMask = 0
-                object.physicsBody?.categoryBitMask = CollisionType.tree.rawValue
-                object.physicsBody?.contactTestBitMask = CollisionType.player.rawValue
             }
-            
             waterObject = SKSpriteNode(imageNamed: "waterobject")
             waterObject.zPosition = 1
             waterObject.position = CGPoint(x: newObjectPosition, y: rowPosition + 128)
@@ -453,7 +461,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
             let randomBool = Bool.random()
             
-            if randomBool == true && currentObjects < maxObjects && objectsInARow < 1 {
+            if randomBool == true && currentObjects < maxObjects && objectsInARow < 1{
                 self.addChild(object)
                 object.run(action)
                 currentObjects += 1
@@ -468,10 +476,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             newObjectPosition += 128
             currentFilledCollums += 1
         }
-        
     }
     func didBegin(_ contact: SKPhysicsContact) {
-    //print("Objects did collide")
         var firstBody:SKPhysicsBody
         var secondBody:SKPhysicsBody
         
@@ -484,12 +490,25 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.object.rawValue {
-            print("player tocuhed an object")
+            //print("player tocuhed an object")
             takeDamage()
         }
         else if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.goal.rawValue {
-            print("player has reached the goal")
-            
+            //print("player has reached the goal")
+            gameHasEnded = true
+            if difficulty == "Easy" {
+                let endtime:Double = timer
+                score = 1000 / Int(endtime) * hitPoints
+            }
+            if difficulty == "Medium" {
+                let endtime:Double = timer
+                score = 1000 / Int(endtime) * hitPoints * 2
+            }
+            if difficulty == "Hard" {
+                let endtime:Double = timer
+                score = 1000 / Int(endtime) * hitPoints * 5
+            }
+            print (score)
             
             let rotateleft = SKAction.rotate(byAngle: -1, duration: 0.25)
             let wait = SKAction.wait(forDuration: 0.25)
@@ -505,6 +524,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 self.view?.presentScene(scene, transition: transition)
                 }
             }
+            if let highScore = userDefaults.value(forKey: "HighScore") as? Int {
+                if score > highScore {
+                    //userDefaults.set(score, forKey: "HighScore")
+                }
+            }
+
         }
         if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.border.rawValue {
             playerdeath()
@@ -519,9 +544,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             print("Entered River flowing Right")
             let action = SKAction.moveBy(x: 1024, y: 0, duration: 60)
             player.run(action)
-        }
-        if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.tree.rawValue {
-            //player.removeAction(forKey: "cancel move")
         }
     }
     func didEnd(_ contact: SKPhysicsContact) {
@@ -540,15 +562,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let action = SKAction.moveBy(x: 1024, y: 0, duration: 60)
             player.run(action)
 
-            //player.removeAllActions()
-
         }else if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.waterObjectright.rawValue {
             print("outside of River")
             let action = SKAction.moveBy(x: -1024, y: 0, duration: 60)
             player.run(action)
             
-            //player.removeAllActions()
-
         }
         
     }
