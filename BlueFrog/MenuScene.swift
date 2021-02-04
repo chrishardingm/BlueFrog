@@ -34,7 +34,7 @@ class MenuScene: SKScene {
                 if name == "startGameButton"
                 {
                     print("play again touched")
-                    let transition:SKTransition = SKTransition.fade(withDuration: 5)
+                    let transition:SKTransition = SKTransition.fade(withDuration: 2)
                     if let scene:SKScene = GameOverScene(fileNamed: "GameScene") {
                     scene.scaleMode = .aspectFill
                     self.view?.presentScene(scene, transition: transition)

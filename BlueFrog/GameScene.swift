@@ -58,6 +58,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         case border = 0b100
         case waterObjectleft = 0b101
         case waterObjectright = 0b110
+        case normalRow = 0b111
     }
     override func didMove(to view: SKView) {
         
@@ -152,6 +153,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         createLevel()
     }
+    // Game timer used to calculate the score
     override func update(_ currentTime: TimeInterval){
         timer = timer.advanced(by: 0.01)
         //print(timer)
@@ -171,10 +173,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let moveRight = SKAction.moveBy(x: 128, y: 0, duration: 0.05)
             let moveUp = SKAction.moveBy(x: 0, y: 128, duration: 0.05)
             let MoveDown = SKAction.moveBy(x: 0, y: -128, duration: 0.05)
-
             
             // Moves the player forward or backward
-            if position.y > player.position.y + 72 || position.y < player.position.y - 72{
+            if position.y > player.position.y + 72 || position.y < player.position.y - 72 && gameHasEnded == false{
                 if position.y > player.position.y + 64{
                     player.run(jumpAnimation)
                     player.run(moveUp)
@@ -185,7 +186,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     player.run(MoveDown)
                     adjustXPosition()
                 }
-            }else {
+            }else if gameHasEnded == false{
             // Moves the player left or right
                 if position.x < player.position.x && player.position.x > -200{
                     player.run(jumpAnimation)
@@ -229,7 +230,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if player.position.x > 192 && player.position.x < 256 {
             player.position.x = 256
         }
-        if player.position.x > 256 && player.position.x <= 400 {
+        if player.position.x > 256 && player.position.x <= 500 {
             player.position.x = 256
         }
         
@@ -237,7 +238,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if player.position.x > -192 && player.position.x < -256 {
             player.position.x = 256
         }
-        if player.position.x > -256 && player.position.x <= -400 {
+        if player.position.x > -256 && player.position.x <= -500 {
             player.position.x = 256
         }
         
@@ -284,6 +285,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         player.run(spin)
         player.run(shrink)
+        userDefaults.setValue(0, forKey: "Score")
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             let transition:SKTransition = SKTransition.fade(withDuration: 5)
             if let scene:SKScene = GameOverScene(fileNamed: "GameOverScene") {
@@ -292,7 +294,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
         }
     }
-    
     func createLevel() {
         let rowType = ["road","water"]
         var lastRowPosition = player.position.y
@@ -446,7 +447,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 object.texture = SKTexture(imageNamed: "water")
                 object.zPosition = 1
                 object.setScale(1.0)
-                object.physicsBody = SKPhysicsBody(circleOfRadius: max(object.size.width /  10, object.size.height / 10))
+                object.physicsBody = SKPhysicsBody(circleOfRadius: max(object.size.width /  14, object.size.height / 14))
                 object.physicsBody?.categoryBitMask = CollisionType.object.rawValue
                 object.physicsBody?.collisionBitMask = 0
                 object.physicsBody?.contactTestBitMask = CollisionType.player.rawValue
@@ -508,16 +509,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 let endtime:Double = timer
                 score = 1000 / Int(endtime) * hitPoints * 5
             }
+            userDefaults.setValue(score, forKey: "Score")
             print (score)
+
             
-            let rotateleft = SKAction.rotate(byAngle: -1, duration: 0.25)
-            let wait = SKAction.wait(forDuration: 0.25)
-            let rotateright = SKAction.rotate(byAngle: 1, duration: 0.25)
-            let turnaround = SKAction.rotate(byAngle: 10, duration: 0.25)
-            let winAnimation = SKAction.sequence([rotateleft,wait,rotateright,wait,turnaround])
+            let rotateleft = SKAction.rotate(byAngle: -0.75, duration: 0.25)
+            let wait = SKAction.wait(forDuration: 0.5)
+            let rotateright = SKAction.rotate(byAngle: 1.5, duration: 0.25)
+            let facestraight = SKAction.rotate(byAngle: -0.75, duration: 0.25)
+            let turnaround = SKAction.rotate(byAngle: .pi * 2, duration: 0.25)
+            let winAnimation = SKAction.sequence([rotateleft,wait,rotateright,wait,facestraight,turnaround])
 
             player.run(winAnimation)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                 let transition:SKTransition = SKTransition.fade(withDuration: 5)
                 if let scene:SKScene = GameOverScene(fileNamed: "GameOverScene") {
                 scene.scaleMode = .aspectFill
@@ -526,10 +530,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
             if let highScore = userDefaults.value(forKey: "HighScore") as? Int {
                 if score > highScore {
-                    //userDefaults.set(score, forKey: "HighScore")
+                    userDefaults.set(score, forKey: "HighScore")
                 }
             }
-
         }
         if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.border.rawValue {
             playerdeath()
