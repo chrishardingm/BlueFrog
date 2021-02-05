@@ -46,8 +46,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var timer:Double = 0.0
     var gameHasEnded: Bool = false
     var laneDirectionRandomBool = true
-    var laneDirectionSpeed:Int = 1024
+    var laneDirectionSpeed:Int = 2048
     var maxObjects:Int = 0
+    var playerXMovement:CGFloat = 128
 
     let userDefaults = UserDefaults.standard
 
@@ -70,24 +71,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         hpSprite1 = SKSpriteNode(imageNamed: "player")
         hpSprite1.setScale(0.5)
         hpSprite1.zPosition = 4
-        hpSprite1.position = CGPoint(x: 320, y: +448)
+        hpSprite1.position = CGPoint(x: 320, y: +500)
         
         hpSprite2 = SKSpriteNode(imageNamed: "player")
         hpSprite2.setScale(0.5)
         hpSprite2.zPosition = 4
-        hpSprite2.position = CGPoint(x: 256, y: +448)
+        hpSprite2.position = CGPoint(x: 256, y: +500)
         
         hpSprite3 = SKSpriteNode(imageNamed: "player")
         hpSprite3.setScale(0.5)
         hpSprite3.zPosition = 4
-        hpSprite3.position = CGPoint(x: 192, y: +448)
+        hpSprite3.position = CGPoint(x: 192, y: +500)
         
         // Detect difficulty and adjust game variables.
         if let gameDifficulty = userDefaults.value(forKey: "GameDifficulty") as? String {
             difficulty = gameDifficulty
         }
         if difficulty == "Easy" {
-            physicsWorld.gravity = CGVector(dx: 0, dy: -0.024)
+            physicsWorld.gravity = CGVector(dx: 0, dy: -0.025)
             //laneDirectionSpeed = laneDirectionSpeed * 1
             maxHitPoints = 3
             hitPoints = 3
@@ -101,7 +102,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             maxObjects = 18
             addLivesMedium()
         } else if difficulty == "Hard" {
-            physicsWorld.gravity = CGVector(dx: 0, dy: -0.28)
+            physicsWorld.gravity = CGVector(dx: 0, dy: -0.265)
             //laneDirectionSpeed = laneDirectionSpeed * 2
             maxHitPoints = 1
             hitPoints = 1
@@ -129,7 +130,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(rightBorder)
         
         bottomBorder = SKSpriteNode(imageNamed: "border2")
-        bottomBorder.position = CGPoint(x: 0, y: -720)
+        bottomBorder.position = CGPoint(x: 0, y: -740)
         bottomBorder.physicsBody = SKPhysicsBody(texture: bottomBorder.texture!, size: CGSize(width: bottomBorder.size.width, height: bottomBorder.size.height))
         bottomBorder.physicsBody?.categoryBitMask = CollisionType.border.rawValue
         bottomBorder.physicsBody?.collisionBitMask = 0
@@ -141,7 +142,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         player = SKSpriteNode(imageNamed: "player")
         player.position = CGPoint(x: 0, y: -448)
         player.zPosition = 2
-        player.setScale(0.75)
+        player.setScale(0.7)
         player.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         player.physicsBody = SKPhysicsBody(circleOfRadius: max(player.size.width / 2, player.size.height / 2))
         player.physicsBody?.usesPreciseCollisionDetection = true
@@ -161,16 +162,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
                let position = touch.location(in: self)
-               print("touch position\(position)")
+               //print("touch position\(position)")
                //print("Player position\(player.position)")
             
             // Animations for the players movemnet.
             let jump = SKAction.scale(to: 0.85, duration: 0.025)
-            let shrink = SKAction.scale(to: 0.75, duration: 0.025)
+            let shrink = SKAction.scale(to: 0.7, duration: 0.025)
             let wait = SKAction.wait(forDuration: 0.025)
             let jumpAnimation = SKAction.sequence([jump,wait,shrink])
-            let moveLeft = SKAction.moveBy(x: -128, y: 0, duration: 0.05)
-            let moveRight = SKAction.moveBy(x: 128, y: 0, duration: 0.05)
+            let moveLeft = SKAction.moveBy(x: -playerXMovement, y: 0, duration: 0.05)
+            let moveRight = SKAction.moveBy(x: playerXMovement, y: 0, duration: 0.05)
             let moveUp = SKAction.moveBy(x: 0, y: 128, duration: 0.05)
             let MoveDown = SKAction.moveBy(x: 0, y: -128, duration: 0.05)
             
@@ -179,12 +180,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 if position.y > player.position.y + 64{
                     player.run(jumpAnimation)
                     player.run(moveUp)
-                    adjustXPosition()
+                    adjustXPosition2()
                 }
                 if position.y < player.position.y - 64{
                     player.run(jumpAnimation)
                     player.run(MoveDown)
-                    adjustXPosition()
+                    adjustXPosition2()
                 }
             }else if gameHasEnded == false{
             // Moves the player left or right
@@ -198,10 +199,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 }
             }
         }
-
     }
     //This function will help keep the player on the grid base movement.
-    func adjustXPosition() {
+    func adjustXPosition2() {
+        if player.position.x.truncatingRemainder(dividingBy: playerXMovement) != 0 && player.position.x != 0 {
+            let XPositionRemainder = player.position.x.remainder(dividingBy: playerXMovement)
+            //let newXPosition = player.position.x * XPositionRemainder
+            print(XPositionRemainder)
+            print("Player position\(player.position)")
+            let moveX = SKAction.moveBy(x: -XPositionRemainder, y: 0, duration: 0.01)
+            player.run(moveX)
+        }
+    }
+    func adjustXPosition3() {
+
         //Center block
         if player.position.x > 0 && player.position.x <= 64 {
             player.position.x = 0
@@ -271,6 +282,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if hitPoints == 0 {
             
         }
+        // Animation for player damage
         let flashRedAction = SKAction.sequence([
             SKAction.colorize(with: .orange, colorBlendFactor: 1.0, duration: 0.15),
             SKAction.wait(forDuration: 0.1),
@@ -402,7 +414,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         var newObjectPosition = -2048
         var LaneDirection = 0
         var objectsInARow = 0
-
+        if rowType == "road" {
+            laneDirectionSpeed = 2560
+        }
         if laneDirectionRandomBool == true{
             LaneDirection = laneDirectionSpeed * -1
             laneDirectionRandomBool = false
@@ -411,7 +425,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             laneDirectionRandomBool = true
         }
         if rowType == "water" {
-            waterFlowobject = SKSpriteNode(imageNamed: "waterlane")
+            waterFlowobject = SKSpriteNode(imageNamed: "road")
             waterFlowobject.position = CGPoint(x: 0, y: rowPosition + 128)
             waterFlowobject.zPosition = 0
             waterFlowobject.physicsBody?.isDynamic = true
@@ -424,7 +438,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
             waterFlowobject.physicsBody?.contactTestBitMask = CollisionType.player.rawValue
             self.addChild(waterFlowobject)
-            
         }
         let action = SKAction.moveBy(x: CGFloat(LaneDirection), y: 0, duration: 60)
         
@@ -432,7 +445,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             object = SKSpriteNode(imageNamed: "object")
             object.position = CGPoint(x: newObjectPosition, y: rowPosition + 128)
             object.setScale(0.8)
-            object.physicsBody = SKPhysicsBody(circleOfRadius: max(object.size.width /  12, object.size.height / 12))
+            object.physicsBody = SKPhysicsBody(circleOfRadius: max(object.size.width /  8, object.size.height / 8))
             object.physicsBody?.isDynamic = true
             object.physicsBody?.collisionBitMask = 0
             
@@ -445,15 +458,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 
             } else if rowType == "water" {
                 object.texture = SKTexture(imageNamed: "water")
+                object.alpha = 0.7
                 object.zPosition = 1
                 object.setScale(1.0)
-                object.physicsBody = SKPhysicsBody(circleOfRadius: max(object.size.width /  14, object.size.height / 14))
+                object.physicsBody = SKPhysicsBody(circleOfRadius: max(object.size.width /  10, object.size.height / 10))
                 object.physicsBody?.categoryBitMask = CollisionType.object.rawValue
                 object.physicsBody?.collisionBitMask = 0
                 object.physicsBody?.contactTestBitMask = CollisionType.player.rawValue
 
             }
             waterObject = SKSpriteNode(imageNamed: "waterobject")
+            waterObject.alpha = 0.7
             waterObject.zPosition = 1
             waterObject.position = CGPoint(x: newObjectPosition, y: rowPosition + 128)
             waterObject.physicsBody = SKPhysicsBody(circleOfRadius: max(object.size.width /  4, object.size.height / 4))
@@ -503,11 +518,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
             if difficulty == "Medium" {
                 let endtime:Double = timer
-                score = 1000 / Int(endtime) * hitPoints * 2
+                score = 800 / Int(endtime) * hitPoints * 2
             }
             if difficulty == "Hard" {
                 let endtime:Double = timer
-                score = 1000 / Int(endtime) * hitPoints * 5
+                score = 800 / Int(endtime) * hitPoints * 5
             }
             userDefaults.setValue(score, forKey: "Score")
             print (score)
@@ -535,17 +550,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
         }
         if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.border.rawValue {
+            gameHasEnded = true
             playerdeath()
             print("player has reached the border")
         }
         if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.waterObjectleft.rawValue {
             print("Entered River flowing left")
-            let action = SKAction.moveBy(x: -1024, y: 0, duration: 60)
+            let action = SKAction.moveBy(x: -2048, y: 0, duration: 60)
             player.run(action)
 
         }else if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.waterObjectright.rawValue {
             print("Entered River flowing Right")
-            let action = SKAction.moveBy(x: 1024, y: 0, duration: 60)
+            let action = SKAction.moveBy(x: 2048, y: 0, duration: 60)
             player.run(action)
         }
     }
@@ -562,14 +578,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.waterObjectleft.rawValue {
             print("outside of River")
-            let action = SKAction.moveBy(x: 1024, y: 0, duration: 60)
+            let action = SKAction.moveBy(x: 2048, y: 0, duration: 60)
             player.run(action)
 
         }else if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.waterObjectright.rawValue {
             print("outside of River")
-            let action = SKAction.moveBy(x: -1024, y: 0, duration: 60)
+            let action = SKAction.moveBy(x: -2048, y: 0, duration: 60)
             player.run(action)
-            
         }
         
     }
