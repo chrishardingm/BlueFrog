@@ -42,6 +42,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var hitPoints:Int = 0
     var maxHitPoints:Int = 0
     var difficulty:String = "Easy"
+    var playerdirection:String = "Forward"
     var score:Int = 0
     var timer:Double = 0.0
     var gameHasEnded: Bool = false
@@ -59,7 +60,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         case border = 0b100
         case waterObjectleft = 0b101
         case waterObjectright = 0b110
-        case normalRow = 0b111
     }
     override func didMove(to view: SKView) {
         
@@ -68,17 +68,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         
         
-        hpSprite1 = SKSpriteNode(imageNamed: "player")
+        hpSprite1 = SKSpriteNode(imageNamed: "frog1")
         hpSprite1.setScale(0.5)
         hpSprite1.zPosition = 4
         hpSprite1.position = CGPoint(x: 320, y: +500)
         
-        hpSprite2 = SKSpriteNode(imageNamed: "player")
+        hpSprite2 = SKSpriteNode(imageNamed: "frog1")
         hpSprite2.setScale(0.5)
         hpSprite2.zPosition = 4
         hpSprite2.position = CGPoint(x: 256, y: +500)
         
-        hpSprite3 = SKSpriteNode(imageNamed: "player")
+        hpSprite3 = SKSpriteNode(imageNamed: "frog1")
         hpSprite3.setScale(0.5)
         hpSprite3.zPosition = 4
         hpSprite3.position = CGPoint(x: 192, y: +500)
@@ -89,21 +89,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         if difficulty == "Easy" {
             physicsWorld.gravity = CGVector(dx: 0, dy: -0.025)
-            //laneDirectionSpeed = laneDirectionSpeed * 1
             maxHitPoints = 3
             hitPoints = 3
             maxObjects = 16
             addLivesEasy()
         } else if difficulty == "Medium" {
-            physicsWorld.gravity = CGVector(dx: 0, dy: -0.026)
-            //laneDirectionSpeed = laneDirectionSpeed * 2
+            physicsWorld.gravity = CGVector(dx: 0, dy: -0.03)
             maxHitPoints = 2
             hitPoints = 2
             maxObjects = 18
             addLivesMedium()
         } else if difficulty == "Hard" {
-            physicsWorld.gravity = CGVector(dx: 0, dy: -0.265)
-            //laneDirectionSpeed = laneDirectionSpeed * 2
+            physicsWorld.gravity = CGVector(dx: 0, dy: -0.035)
             maxHitPoints = 1
             hitPoints = 1
             maxObjects = 20
@@ -166,7 +163,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                //print("Player position\(player.position)")
             
             // Animations for the players movemnet.
-            let jump = SKAction.scale(to: 0.85, duration: 0.025)
+            let jump = SKAction.scale(to: 0.9, duration: 0.025)
             let shrink = SKAction.scale(to: 0.7, duration: 0.025)
             let wait = SKAction.wait(forDuration: 0.025)
             let jumpAnimation = SKAction.sequence([jump,wait,shrink])
@@ -174,6 +171,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let moveRight = SKAction.moveBy(x: playerXMovement, y: 0, duration: 0.05)
             let moveUp = SKAction.moveBy(x: 0, y: 128, duration: 0.05)
             let MoveDown = SKAction.moveBy(x: 0, y: -128, duration: 0.05)
+            let rotateLeft = SKAction.rotate(byAngle: 1.57, duration: 0.1)
+            let rotateRight = SKAction.rotate(byAngle: -1.57, duration: 0.1)
+            let turnaround = SKAction.rotate(byAngle: .pi, duration: 0.1)
+
             
             // Moves the player forward or backward
             if position.y > player.position.y + 72 || position.y < player.position.y - 72 && gameHasEnded == false{
@@ -181,21 +182,58 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     player.run(jumpAnimation)
                     player.run(moveUp)
                     adjustXPosition2()
+                    if playerdirection == "Left" {
+                        player.run(rotateRight)
+                    }
+                    if playerdirection == "Right" {
+                        player.run(rotateLeft)
+                    }
+                    if playerdirection == "Back" {
+                        player.run(turnaround)
+                    }
+                    playerdirection = "Forward"
                 }
                 if position.y < player.position.y - 64{
                     player.run(jumpAnimation)
                     player.run(MoveDown)
                     adjustXPosition2()
+                    if playerdirection == "Left" {
+                        player.run(rotateLeft)
+                    }
+                    if playerdirection == "Right" {
+                        player.run(rotateRight)
+                    }
+                    if playerdirection == "Forward" {
+                        player.run(turnaround)
+                    }
+                    playerdirection = "Back"
                 }
+                
             }else if gameHasEnded == false{
             // Moves the player left or right
                 if position.x < player.position.x && player.position.x > -200{
                     player.run(jumpAnimation)
                     player.run(moveLeft)
+                    if playerdirection == "Forward" {
+                        player.run(rotateLeft)
+                    } else if playerdirection == "Back" {
+                        player.run(rotateRight)
+                    } else if playerdirection == "Right" {
+                        player.run(turnaround)
+                    }
+                    playerdirection = "Left"
                 }
                 if position.x > player.position.x + 64 && player.position.x < 200{
                     player.run(jumpAnimation)
                     player.run(moveRight)
+                    if playerdirection == "Forward" {
+                        player.run(rotateRight)
+                    } else if playerdirection == "Back" {
+                        player.run(rotateLeft)
+                    } else if playerdirection == "Left" {
+                        player.run(turnaround)
+                    }
+                    playerdirection = "Right"
                 }
             }
         }
@@ -204,9 +242,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func adjustXPosition2() {
         if player.position.x.truncatingRemainder(dividingBy: playerXMovement) != 0 && player.position.x != 0 {
             let XPositionRemainder = player.position.x.remainder(dividingBy: playerXMovement)
-            //let newXPosition = player.position.x * XPositionRemainder
-            print(XPositionRemainder)
-            print("Player position\(player.position)")
+            //print(XPositionRemainder)
+            //print("Player position\(player.position)")
             let moveX = SKAction.moveBy(x: -XPositionRemainder, y: 0, duration: 0.01)
             player.run(moveX)
         }
@@ -444,13 +481,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         while currentFilledCollums < 32 {
             object = SKSpriteNode(imageNamed: "object")
             object.position = CGPoint(x: newObjectPosition, y: rowPosition + 128)
-            object.setScale(0.8)
+            object.setScale(1.0)
             object.physicsBody = SKPhysicsBody(circleOfRadius: max(object.size.width /  8, object.size.height / 8))
             object.physicsBody?.isDynamic = true
             object.physicsBody?.collisionBitMask = 0
             
             if rowType == "road" {
-                object.texture = SKTexture(imageNamed: "object")
+                print(LaneDirection)
+                if LaneDirection == 2560 {
+                    object.texture = SKTexture(imageNamed: "car")
+                } else if LaneDirection == -2560 {
+                    object.texture = SKTexture(imageNamed: "object")
+                }
                 object.zPosition = 3
                 object.physicsBody?.categoryBitMask = CollisionType.object.rawValue
                 object.physicsBody?.collisionBitMask = 0
@@ -525,8 +567,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 score = 800 / Int(endtime) * hitPoints * 5
             }
             userDefaults.setValue(score, forKey: "Score")
-            print (score)
-
+            //print (score)
             
             let rotateleft = SKAction.rotate(byAngle: -0.75, duration: 0.25)
             let wait = SKAction.wait(forDuration: 0.5)
@@ -555,12 +596,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             print("player has reached the border")
         }
         if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.waterObjectleft.rawValue {
-            print("Entered River flowing left")
+            //print("Entered River flowing left")
             let action = SKAction.moveBy(x: -2048, y: 0, duration: 60)
             player.run(action)
 
         }else if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.waterObjectright.rawValue {
-            print("Entered River flowing Right")
+            //print("Entered River flowing Right")
             let action = SKAction.moveBy(x: 2048, y: 0, duration: 60)
             player.run(action)
         }
@@ -577,12 +618,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             secondBody = contact.bodyA
         }
         if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.waterObjectleft.rawValue {
-            print("outside of River")
+            //print("outside of River")
             let action = SKAction.moveBy(x: 2048, y: 0, duration: 60)
             player.run(action)
 
         }else if firstBody.categoryBitMask == CollisionType.player.rawValue && secondBody.categoryBitMask == CollisionType.waterObjectright.rawValue {
-            print("outside of River")
+            //print("outside of River")
             let action = SKAction.moveBy(x: -2048, y: 0, duration: 60)
             player.run(action)
         }

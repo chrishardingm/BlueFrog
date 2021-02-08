@@ -31,7 +31,7 @@ class MenuScene: SKScene {
         if let name = touchedNode.name
             {
                 print(name)
-                if name == "startGameButton"
+                if name == "startGameButton" || name == "startGameButton2"
                 {
                     print("play again touched")
                     let transition:SKTransition = SKTransition.fade(withDuration: 2)
@@ -40,7 +40,7 @@ class MenuScene: SKScene {
                     self.view?.presentScene(scene, transition: transition)
                     }
                 }
-                if name == "difficultyButton"
+                if name == "difficultyButton" || name == "difficultyButton2"
                 {
                     print("Player touched difficulty button")
                     guard let difficulty = DifficultyOptions(rawValue: difficultyLabel.text!) else { return }

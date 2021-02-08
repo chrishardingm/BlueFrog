@@ -44,7 +44,7 @@ class GameOverScene: SKScene {
         if let name = touchedNode.name
         {
             print(name)
-            if name == "replay"
+            if name == "replay" || name == "replay2"
             {
                 print("play again touched")
                 let transition:SKTransition = SKTransition.fade(withDuration: 2)
@@ -53,7 +53,7 @@ class GameOverScene: SKScene {
                 self.view?.presentScene(scene, transition: transition)
                 }
             }
-            if name == "mainMenu"
+            if name == "mainMenu" || name == "mainMenu2"
             {
                 print("mainMenu was touched")
                 let transition:SKTransition = SKTransition.fade(withDuration: 2)
