@@ -248,49 +248,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             player.run(moveX)
         }
     }
-    func adjustXPosition3() {
-
-        //Center block
-        if player.position.x > 0 && player.position.x <= 64 {
-            player.position.x = 0
-        }
-        if player.position.x < 0 && player.position.x >= -64 {
-            player.position.x = 0
-        }
-        
-        //First right block
-        if player.position.x > 64 && player.position.x < 128 {
-            player.position.x = 128
-        }
-        if player.position.x > 128 && player.position.x <= 192 {
-            player.position.x = 128
-        }
-        
-        //First left block
-        if player.position.x > -64 && player.position.x < -128 {
-            player.position.x = 128
-        }
-        if player.position.x > -128 && player.position.x <= -192 {
-            player.position.x = 128
-        }
-        
-        //Second Right block
-        if player.position.x > 192 && player.position.x < 256 {
-            player.position.x = 256
-        }
-        if player.position.x > 256 && player.position.x <= 500 {
-            player.position.x = 256
-        }
-        
-        //Second Left block
-        if player.position.x > -192 && player.position.x < -256 {
-            player.position.x = 256
-        }
-        if player.position.x > -256 && player.position.x <= -500 {
-            player.position.x = 256
-        }
-        
-    }
     func addLivesEasy(){
         self.addChild(hpSprite1)
         self.addChild(hpSprite2)
@@ -312,6 +269,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             hpSprite2.removeFromParent()
         }
         if hitPoints == 1 {
+            gameHasEnded = true
             hpSprite1.removeFromParent()
             print("You lose")
             playerdeath()
@@ -328,7 +286,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         hitPoints -= 1
     }
     func playerdeath() {
-        gameHasEnded = true
         let shrink = SKAction.scale(to: 0.5, duration: 2)
         let spin = SKAction.rotate(byAngle: 180, duration: 2)
         
@@ -347,8 +304,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let rowType = ["road","water"]
         var lastRowPosition = player.position.y
         
-        rowZero = SKSpriteNode(imageNamed: "grass")
-        rowZero.position = CGPoint(x: 0, y: lastRowPosition)
+        rowZero = SKSpriteNode(imageNamed: "GrassB")
+        rowZero.position = CGPoint(x: 0, y: lastRowPosition - 128)
         rowZero.physicsBody = SKPhysicsBody(texture: rowZero.texture!, size: CGSize(width: rowZero.size.width, height: rowZero.size.height / 2))
         rowZero.physicsBody?.isDynamic = true
         rowZero.physicsBody?.collisionBitMask = 0
@@ -434,8 +391,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(rowEight)
         lastRowPosition = rowEight.position.y
         
-        lastRow = SKSpriteNode(imageNamed: "grass")
-        lastRow.position = CGPoint(x: 0, y: lastRowPosition + 128)
+        lastRow = SKSpriteNode(imageNamed: "GrassB")
+        lastRow.position = CGPoint(x: 0, y: lastRowPosition + 256)
         lastRow.physicsBody = SKPhysicsBody(texture: lastRow.texture!, size: CGSize(width: lastRow.size.width, height: lastRow.size.height / 2))
         lastRow.physicsBody?.isDynamic = true
         lastRow.physicsBody?.categoryBitMask = CollisionType.goal.rawValue
@@ -491,7 +448,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 if LaneDirection == 2560 {
                     object.texture = SKTexture(imageNamed: "car")
                 } else if LaneDirection == -2560 {
-                    object.texture = SKTexture(imageNamed: "object")
+                    object.texture = SKTexture(imageNamed: "car2")
                 }
                 object.zPosition = 3
                 object.physicsBody?.categoryBitMask = CollisionType.object.rawValue
@@ -573,11 +530,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let wait = SKAction.wait(forDuration: 0.5)
             let rotateright = SKAction.rotate(byAngle: 1.5, duration: 0.25)
             let facestraight = SKAction.rotate(byAngle: -0.75, duration: 0.25)
-            let turnaround = SKAction.rotate(byAngle: .pi * 2, duration: 0.25)
+            let turnaround = SKAction.rotate(byAngle: .pi * 2, duration: 0.5)
             let winAnimation = SKAction.sequence([rotateleft,wait,rotateright,wait,facestraight,turnaround])
 
             player.run(winAnimation)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                 let transition:SKTransition = SKTransition.fade(withDuration: 5)
                 if let scene:SKScene = GameOverScene(fileNamed: "GameOverScene") {
                 scene.scaleMode = .aspectFill

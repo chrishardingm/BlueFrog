@@ -10,10 +10,24 @@ import SpriteKit
 class MenuScene: SKScene {
 
     var difficultyLabel: SKLabelNode!
+    var backroundImage: SKSpriteNode!
+    var backroundImage2: SKSpriteNode!
     let userDefaults = UserDefaults.standard
 
     
     override func didMove(to view: SKView) {
+        backroundImage = SKSpriteNode(imageNamed: "GrassB")
+        backroundImage.position = CGPoint(x: 375, y: 345)
+        backroundImage.zPosition = 0
+        backroundImage.setScale(1.2)
+        self.addChild(backroundImage)
+        
+        backroundImage2 = SKSpriteNode(imageNamed: "GrassB")
+        backroundImage2.position = CGPoint(x: 375, y: 955)
+        backroundImage2.zPosition = 0
+        backroundImage2.setScale(1.2)
+        self.addChild(backroundImage2)
+        
         difficultyLabel = self.childNode(withName: "difficultyLabel") as? SKLabelNode
         if let gameDifficulty = userDefaults.value(forKey: "GameDifficulty") as? String {
             difficultyLabel.text = gameDifficulty
