@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		306B2EE425D2EA7100C0AB7D /* jump.wav in Resources */ = {isa = PBXBuildFile; fileRef = 306B2EE325D2EA7100C0AB7D /* jump.wav */; };
+		306B2EE925D2EC0800C0AB7D /* die.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 306B2EE825D2EC0800C0AB7D /* die.mp3 */; };
+		306B2EF325D2EDAC00C0AB7D /* win.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 306B2EF225D2EDAC00C0AB7D /* win.mp3 */; };
+		306B2EF825D2F12F00C0AB7D /* damage.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 306B2EF725D2F12F00C0AB7D /* damage.mp3 */; };
 		30793CF225B1E13F0085C66B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30793CF125B1E13F0085C66B /* AppDelegate.swift */; };
 		30793CF425B1E13F0085C66B /* GameScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = 30793CF325B1E13F0085C66B /* GameScene.sks */; };
 		30793CF625B1E13F0085C66B /* Actions.sks in Resources */ = {isa = PBXBuildFile; fileRef = 30793CF525B1E13F0085C66B /* Actions.sks */; };
@@ -41,6 +45,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		306B2EE325D2EA7100C0AB7D /* jump.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = jump.wav; sourceTree = "<group>"; };
+		306B2EE825D2EC0800C0AB7D /* die.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = die.mp3; sourceTree = "<group>"; };
+		306B2EF225D2EDAC00C0AB7D /* win.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = win.mp3; sourceTree = "<group>"; };
+		306B2EF725D2F12F00C0AB7D /* damage.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = damage.mp3; sourceTree = "<group>"; };
 		30793CEE25B1E13F0085C66B /* BlueFrog.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BlueFrog.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		30793CF125B1E13F0085C66B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		30793CF325B1E13F0085C66B /* GameScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = GameScene.sks; sourceTree = "<group>"; };
@@ -88,6 +96,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		306B2F0425D2F58500C0AB7D /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				306B2EE325D2EA7100C0AB7D /* jump.wav */,
+				306B2EF225D2EDAC00C0AB7D /* win.mp3 */,
+				306B2EE825D2EC0800C0AB7D /* die.mp3 */,
+				306B2EF725D2F12F00C0AB7D /* damage.mp3 */,
+			);
+			path = Sounds;
+			sourceTree = "<group>";
+		};
 		30793CE525B1E13F0085C66B = {
 			isa = PBXGroup;
 			children = (
@@ -124,6 +143,7 @@
 				30793CFB25B1E13F0085C66B /* Main.storyboard */,
 				30793CFE25B1E1400085C66B /* Assets.xcassets */,
 				30793D0025B1E1400085C66B /* Info.plist */,
+				306B2F0425D2F58500C0AB7D /* Sounds */,
 			);
 			path = BlueFrog;
 			sourceTree = "<group>";
@@ -250,11 +270,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				30793CFD25B1E13F0085C66B /* Main.storyboard in Resources */,
+				306B2EF825D2F12F00C0AB7D /* damage.mp3 in Resources */,
 				30793CF425B1E13F0085C66B /* GameScene.sks in Resources */,
 				30793CFF25B1E1400085C66B /* Assets.xcassets in Resources */,
+				306B2EE425D2EA7100C0AB7D /* jump.wav in Resources */,
 				3090DFCF25BB1CFC0068DF0A /* MenuScene.sks in Resources */,
+				306B2EF325D2EDAC00C0AB7D /* win.mp3 in Resources */,
 				3090DFD925BB21EF0068DF0A /* GameOverScene.sks in Resources */,
 				30793CF625B1E13F0085C66B /* Actions.sks in Resources */,
+				306B2EE925D2EC0800C0AB7D /* die.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

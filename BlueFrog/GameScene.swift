@@ -4,6 +4,11 @@
 //
 //  Created by Chris Harding on 1/15/21.
 //
+//  Sound effects credits -
+//  "jump.wave" by LloydEvans09 of Freesound.org
+//  "die.mp3" by josepharaoh99 of Freesound.org
+//  "win.mp3" by FunWithSound of Freesound.org
+//  "damage.mp3" by Raclure of Freesound.org
 
 import SpriteKit
 import GameplayKit
@@ -179,6 +184,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             // Moves the player forward or backward
             if position.y > player.position.y + 72 || position.y < player.position.y - 72 && gameHasEnded == false{
                 if position.y > player.position.y + 64{
+                    run(SKAction.playSoundFileNamed("jump.wav", waitForCompletion: false))
                     player.run(jumpAnimation)
                     player.run(moveUp)
                     adjustXPosition2()
@@ -194,6 +200,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     playerdirection = "Forward"
                 }
                 if position.y < player.position.y - 64{
+                    run(SKAction.playSoundFileNamed("jump.wav", waitForCompletion: false))
                     player.run(jumpAnimation)
                     player.run(MoveDown)
                     adjustXPosition2()
@@ -212,6 +219,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }else if gameHasEnded == false{
             // Moves the player left or right
                 if position.x < player.position.x && player.position.x > -200{
+                    run(SKAction.playSoundFileNamed("jump.wav", waitForCompletion: false))
                     player.run(jumpAnimation)
                     player.run(moveLeft)
                     if playerdirection == "Forward" {
@@ -224,6 +232,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     playerdirection = "Left"
                 }
                 if position.x > player.position.x + 64 && player.position.x < 200{
+                    run(SKAction.playSoundFileNamed("jump.wav", waitForCompletion: false))
                     player.run(jumpAnimation)
                     player.run(moveRight)
                     if playerdirection == "Forward" {
@@ -261,7 +270,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(hpSprite1)
     }
     func takeDamage() {
-        
+        run(SKAction.playSoundFileNamed("damage.mp3", waitForCompletion: false))
         if hitPoints == 3 {
             hpSprite3.removeFromParent()
         }
@@ -270,6 +279,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         if hitPoints == 1 {
             gameHasEnded = true
+            run(SKAction.playSoundFileNamed("die.mp3", waitForCompletion: false))
             hpSprite1.removeFromParent()
             print("You lose")
             playerdeath()
@@ -304,8 +314,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let rowType = ["road","water"]
         var lastRowPosition = player.position.y
         
-        rowZero = SKSpriteNode(imageNamed: "GrassB")
-        rowZero.position = CGPoint(x: 0, y: lastRowPosition - 128)
+        rowZero = SKSpriteNode(imageNamed: "grass")
+        rowZero.position = CGPoint(x: 0, y: lastRowPosition)
         rowZero.physicsBody = SKPhysicsBody(texture: rowZero.texture!, size: CGSize(width: rowZero.size.width, height: rowZero.size.height / 2))
         rowZero.physicsBody?.isDynamic = true
         rowZero.physicsBody?.collisionBitMask = 0
@@ -391,8 +401,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(rowEight)
         lastRowPosition = rowEight.position.y
         
-        lastRow = SKSpriteNode(imageNamed: "GrassB")
-        lastRow.position = CGPoint(x: 0, y: lastRowPosition + 256)
+        lastRow = SKSpriteNode(imageNamed: "grass")
+        lastRow.position = CGPoint(x: 0, y: lastRowPosition + 128)
         lastRow.physicsBody = SKPhysicsBody(texture: lastRow.texture!, size: CGSize(width: lastRow.size.width, height: lastRow.size.height / 2))
         lastRow.physicsBody?.isDynamic = true
         lastRow.physicsBody?.categoryBitMask = CollisionType.goal.rawValue
@@ -532,7 +542,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let facestraight = SKAction.rotate(byAngle: -0.75, duration: 0.25)
             let turnaround = SKAction.rotate(byAngle: .pi * 2, duration: 0.5)
             let winAnimation = SKAction.sequence([rotateleft,wait,rotateright,wait,facestraight,turnaround])
-
+            
+            run(SKAction.playSoundFileNamed("win.mp3", waitForCompletion: false))
             player.run(winAnimation)
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                 let transition:SKTransition = SKTransition.fade(withDuration: 5)
