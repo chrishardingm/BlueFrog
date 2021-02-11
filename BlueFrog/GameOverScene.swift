@@ -11,10 +11,15 @@ class GameOverScene: SKScene {
     
     var playAgain:SKSpriteNode!
     var scoreNum: SKLabelNode!
+    var gameOverLabel: SKLabelNode!
     var highscoreNum: SKLabelNode!
     let userDefaults = UserDefaults.standard
     
     override func didMove(to view: SKView) {
+        gameOverLabel = self.childNode(withName: "gameOverLabel") as? SKLabelNode
+        if let winStatus = userDefaults.value(forKey: "WinStatus") as? String {
+            gameOverLabel.text = winStatus
+        }
         scoreNum = self.childNode(withName: "scoreNum") as? SKLabelNode
         if let userScore = userDefaults.value(forKey: "Score") as? Int {
             print(userScore)

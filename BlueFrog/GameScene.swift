@@ -32,6 +32,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var rowSeven:SKSpriteNode!
     var rowEight:SKSpriteNode!
     var lastRow:SKSpriteNode!
+    var grassRow1:SKSpriteNode!
+    var grassRow2:SKSpriteNode!
+    var grassRow3:SKSpriteNode!
+    var grassRow4:SKSpriteNode!
     
     var waterObject:SKSpriteNode!
     var waterFlowobject:SKSpriteNode!
@@ -55,6 +59,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var laneDirectionSpeed:Int = 2048
     var maxObjects:Int = 0
     var playerXMovement:CGFloat = 128
+    
+    let jumpsound = SKAction.playSoundFileNamed("jump.wav", waitForCompletion: false)
+    let damageSound = SKAction.playSoundFileNamed("damage.mp3", waitForCompletion: false)
+    let dieSound = SKAction.playSoundFileNamed("die.mp3", waitForCompletion: false)
+    let winSound = SKAction.playSoundFileNamed("win.mp3", waitForCompletion: false)
 
     let userDefaults = UserDefaults.standard
 
@@ -71,7 +80,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.scaleMode = .aspectFill
         self.physicsWorld.contactDelegate = self
         self.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-        
         
         hpSprite1 = SKSpriteNode(imageNamed: "frog1")
         hpSprite1.setScale(0.5)
@@ -99,13 +107,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             maxObjects = 16
             addLivesEasy()
         } else if difficulty == "Medium" {
-            physicsWorld.gravity = CGVector(dx: 0, dy: -0.03)
+            physicsWorld.gravity = CGVector(dx: 0, dy: -0.04)
             maxHitPoints = 2
             hitPoints = 2
             maxObjects = 18
             addLivesMedium()
         } else if difficulty == "Hard" {
-            physicsWorld.gravity = CGVector(dx: 0, dy: -0.035)
+            physicsWorld.gravity = CGVector(dx: 0, dy: -0.05)
             maxHitPoints = 1
             hitPoints = 1
             maxObjects = 20
@@ -141,7 +149,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(bottomBorder)
 
         // Creating the player.
-        player = SKSpriteNode(imageNamed: "player")
+        player = SKSpriteNode(imageNamed: "frog1")
         player.position = CGPoint(x: 0, y: -448)
         player.zPosition = 2
         player.setScale(0.7)
@@ -153,7 +161,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         player.physicsBody?.contactTestBitMask = CollisionType.object.rawValue
         player.physicsBody?.isDynamic = true
         self.addChild(player)
-        
+                
         createLevel()
     }
     // Game timer used to calculate the score
@@ -179,12 +187,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let rotateLeft = SKAction.rotate(byAngle: 1.57, duration: 0.1)
             let rotateRight = SKAction.rotate(byAngle: -1.57, duration: 0.1)
             let turnaround = SKAction.rotate(byAngle: .pi, duration: 0.1)
-
             
             // Moves the player forward or backward
             if position.y > player.position.y + 72 || position.y < player.position.y - 72 && gameHasEnded == false{
                 if position.y > player.position.y + 64{
-                    run(SKAction.playSoundFileNamed("jump.wav", waitForCompletion: false))
+                    player.run(jumpsound)
                     player.run(jumpAnimation)
                     player.run(moveUp)
                     adjustXPosition2()
@@ -200,7 +207,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     playerdirection = "Forward"
                 }
                 if position.y < player.position.y - 64{
-                    run(SKAction.playSoundFileNamed("jump.wav", waitForCompletion: false))
+                    player.run(jumpsound)
                     player.run(jumpAnimation)
                     player.run(MoveDown)
                     adjustXPosition2()
@@ -219,7 +226,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }else if gameHasEnded == false{
             // Moves the player left or right
                 if position.x < player.position.x && player.position.x > -200{
-                    run(SKAction.playSoundFileNamed("jump.wav", waitForCompletion: false))
+                    player.run(jumpsound)
                     player.run(jumpAnimation)
                     player.run(moveLeft)
                     if playerdirection == "Forward" {
@@ -232,7 +239,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     playerdirection = "Left"
                 }
                 if position.x > player.position.x + 64 && player.position.x < 200{
-                    run(SKAction.playSoundFileNamed("jump.wav", waitForCompletion: false))
+                    player.run(jumpsound)
                     player.run(jumpAnimation)
                     player.run(moveRight)
                     if playerdirection == "Forward" {
@@ -293,15 +300,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             SKAction.wait(forDuration: 0.1),
             SKAction.colorize(withColorBlendFactor: 0.0, duration: 0.15)])
         player.run(flashRedAction)
+        player.run(damageSound)
         hitPoints -= 1
     }
     func playerdeath() {
         let shrink = SKAction.scale(to: 0.5, duration: 2)
         let spin = SKAction.rotate(byAngle: 180, duration: 2)
-        
+
+        player.run(dieSound)
         player.run(spin)
         player.run(shrink)
         userDefaults.setValue(0, forKey: "Score")
+        userDefaults.setValue("Game Over", forKey: "WinStatus")
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             let transition:SKTransition = SKTransition.fade(withDuration: 5)
             if let scene:SKScene = GameOverScene(fileNamed: "GameOverScene") {
@@ -313,6 +323,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func createLevel() {
         let rowType = ["road","water"]
         var lastRowPosition = player.position.y
+        
+        grassRow1 = SKSpriteNode(imageNamed: "grass")
+        grassRow1.position = CGPoint(x: 0, y: lastRowPosition - 128)
+        grassRow1.physicsBody = SKPhysicsBody(texture: grassRow1.texture!, size: CGSize(width: grassRow1.size.width, height: grassRow1.size.height / 2))
+        self.addChild(grassRow1)
         
         rowZero = SKSpriteNode(imageNamed: "grass")
         rowZero.position = CGPoint(x: 0, y: lastRowPosition)
@@ -411,6 +426,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(lastRow)
         lastRowPosition = lastRow.position.y
 
+        grassRow2 = SKSpriteNode(imageNamed: "GrassB")
+        grassRow2.position = CGPoint(x: 0, y: lastRowPosition + 256)
+        grassRow2.physicsBody = SKPhysicsBody(texture: grassRow2.texture!, size: CGSize(width: grassRow2.size.width, height: grassRow2.size.height / 2))
+        self.addChild(grassRow2)
+        lastRowPosition = grassRow2.position.y
+        
+        grassRow3 = SKSpriteNode(imageNamed: "GrassB")
+        grassRow3.position = CGPoint(x: 0, y: lastRowPosition + 512)
+        grassRow3.physicsBody = SKPhysicsBody(texture: grassRow3.texture!, size: CGSize(width: grassRow3.size.width, height: grassRow3.size.height / 2))
+        self.addChild(grassRow3)
+        lastRowPosition = grassRow3.position.y
+        
+        grassRow4 = SKSpriteNode(imageNamed: "GrassB")
+        grassRow4.position = CGPoint(x: 0, y: lastRowPosition + 512)
+        grassRow4.physicsBody = SKPhysicsBody(texture: grassRow4.texture!, size: CGSize(width: grassRow4.size.width, height: grassRow4.size.height / 2))
+        self.addChild(grassRow4)
+        lastRowPosition = grassRow4.position.y
     }
     func populateRow (rowType: String, rowPosition: Int) {
         var currentObjects = 0
@@ -534,6 +566,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 score = 800 / Int(endtime) * hitPoints * 5
             }
             userDefaults.setValue(score, forKey: "Score")
+            userDefaults.setValue("You Win!", forKey: "WinStatus")
             //print (score)
             
             let rotateleft = SKAction.rotate(byAngle: -0.75, duration: 0.25)
@@ -543,7 +576,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let turnaround = SKAction.rotate(byAngle: .pi * 2, duration: 0.5)
             let winAnimation = SKAction.sequence([rotateleft,wait,rotateright,wait,facestraight,turnaround])
             
-            run(SKAction.playSoundFileNamed("win.mp3", waitForCompletion: false))
+            player.run(winSound)
             player.run(winAnimation)
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                 let transition:SKTransition = SKTransition.fade(withDuration: 5)
